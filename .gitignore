@@ -1,0 +1,18 @@
+# Local Claude Code overrides — never commit personal settings
+.claude/settings.local.json
+
+# Hook-managed session state — machine/session-specific, not shared
+.claude/sessions/
+.claude/.current-session-id
+
+# Standard
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+build/
+*.log
+
+# Linear session-link state — machine/session-specific, not shared
+.claude/.linear-link
