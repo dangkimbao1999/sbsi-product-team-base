@@ -2,8 +2,7 @@
 
 > **Fill this file in as your project grows.** Everything in angle brackets
 > (`<LIKE_THIS>`) is a placeholder — replace it with real facts about your
-> project. See `README.md` in this repo for the step-by-step onboarding guide
-> to this template.
+> project.
 
 ## Project Context
 
