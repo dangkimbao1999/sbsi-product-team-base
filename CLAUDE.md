@@ -6,19 +6,26 @@
 
 ## Project Context
 
-This is the monorepo for **SBSI**, a Vietnamese securities brokerage (CTCK).
-The core business is trading platform infrastructure — order management /
-execution, portfolio & cash account management, market data distribution,
-customer trading app (web + mobile), and regulatory/compliance reporting
-(systems: OMS, core trading engine, market data feed handler, back-office/
-settlement, customer portal — none built out in this repo yet).
+This repo is **SBSI's product team workspace** — its primary purpose is to
+hold the Claude Code rules/skills the whole team shares, the scripts that
+support day-to-day product work, and a place to generate demos on demand. It
+is *not* the home for SBSI's production trading-system codebases (OMS, core
+trading engine, market data feed handler, back-office/settlement, customer
+portal) — those are expected to live in their own repos if/when they're
+built. This repo stays light on code by design.
 
-The first concrete sub-project in this monorepo is **SBSI Research Hub**
-(`apps/research-hub/`) — a crowdsourced financial-research and investment-idea
-platform for the Vietnam market, functioning as a top-of-funnel product that
-attracts individual investors, analysts, and traders and channels them into
-SBSI's trading products. It is not itself a trading system; see
-`apps/research-hub/CLAUDE.md` for its full project context and domain model.
+SBSI itself is a Vietnamese securities brokerage (CTCK); the trading-domain
+context above exists so rules/skills here can reason about the business, not
+because this repo builds that platform.
+
+The one existing exception is **SBSI Research Hub** (`apps/research-hub/`)
+— a real sub-project (crowdsourced financial-research and investment-idea
+platform for the Vietnam market, a top-of-funnel product funneling investors
+into SBSI's trading products) that predates this workspace framing and
+continues independently. See `apps/research-hub/CLAUDE.md` for its full
+project context and domain model. Don't treat it as a template for how
+future work in this repo should look — most future additions here should be
+rules/skills/scripts/demos, not new sub-apps.
 
 ## Onboard
 
@@ -52,24 +59,21 @@ shape:>
 
 ## Folder Structure
 
-This repo is a monorepo. `apps/` holds independently deployable sub-projects;
-add sibling folders there as new SBSI systems (OMS, core trading engine,
-back-office/settlement, customer trading portal, etc.) come online — don't
-create them preemptively.
-
 ```
 /<repo-root>
-├── .claude/                # Claude Code settings, rules, skills, hooks (this scaffold)
+├── .claude/                # Claude Code settings, rules, skills, hooks — the shared team config (primary content of this repo)
+├── scripts/                 # Product team work scripts (automation, one-off tooling) — see scripts/README.md
+├── demos/                   # Throwaway demo generation, one folder per demo — see demos/README.md
 ├── apps/
-│   └── research-hub/       # SBSI Research Hub — crowdsourced research & investor-acquisition platform — see apps/research-hub/CLAUDE.md
-├── packages/                # Shared packages (once >1 app needs to share code)
-├── scripts/                  # Project-wide scripts (onboarding, CI helpers)
+│   └── research-hub/       # SBSI Research Hub — existing real sub-project, predates this workspace framing — see apps/research-hub/CLAUDE.md
 └── ...
 ```
 
-Each major folder should get its own `CLAUDE.md` once it has enough
-domain-specific rules to be worth splitting out. Don't create one preemptively
-for an empty folder.
+`apps/` is for real, independently-deployable sub-projects — `research-hub`
+is the existing one. Don't add new folders there speculatively; most new
+work belongs in `scripts/` or `demos/` instead. Each major folder should get
+its own `CLAUDE.md` once it has enough domain-specific rules to be worth
+splitting out. Don't create one preemptively for an empty folder.
 
 ## Domain Model
 

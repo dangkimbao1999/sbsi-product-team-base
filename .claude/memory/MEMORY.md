@@ -41,3 +41,4 @@ Then add a one-line pointer here: `- [Title](file.md) — one-line hook`.
 
 - [Project structure decision](project-structure-decision.md) — root stays CTCK-framed, Research Hub is a monorepo sub-app under `apps/`
 - [Linear project for Research Hub](linear-research-hub-project.md) — team Iambao, project "Stock Research Hub - SBSI", don't create a duplicate
+- [Product team workspace reframe](product-team-workspace-reframe.md) — repo's primary purpose is now shared Claude rules/skills + scripts + demos, not a trading codebase; research-hub and enforcement hooks unaffected
