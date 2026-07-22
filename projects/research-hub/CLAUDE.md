@@ -1,9 +1,11 @@
 # SBSI Research Hub
 
-> Sub-project of the SBSI monorepo — see the root `../../CLAUDE.md` for the
-> parent brokerage context and repo-wide rules (this file inherits all of
-> them: TDD, no-fallbacks, git workflow, etc.). This file only documents what
-> is specific to Research Hub.
+> One of the product team's tracked projects — see the root `../../CLAUDE.md`
+> for the parent brokerage context and repo-wide rules (this file inherits
+> all of them: TDD, no-fallbacks, git workflow, etc.). This file only
+> documents what is specific to Research Hub. **This folder holds knowledge,
+> not code** — Research Hub's actual codebase (once built) lives in its own
+> repo; see `../README.md` for the convention.
 
 ## Project Context
 

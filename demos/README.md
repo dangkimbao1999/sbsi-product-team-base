@@ -11,6 +11,7 @@ named for what it demonstrates (e.g. `demos/order-flow-mockup/`).
   discarded or superseded), but the same repo-wide rules still apply while
   they're being built — TDD (`.claude/rules/tdd.md`) and no-fallbacks
   (`.claude/rules/no-fallbacks.md`) are not relaxed for demo code.
-- If a demo turns out to need ongoing development as a real product, move
-  it into `apps/` and give it its own `CLAUDE.md`, rather than letting it
-  grow in place here.
+- If a demo turns out to need ongoing development as a real product, it
+  moves into its own dedicated repo (this repo never hosts product code —
+  see root `CLAUDE.md`), not somewhere else inside here. Add or update the
+  corresponding `projects/<name>/CLAUDE.md` to point at the new repo.

@@ -6,26 +6,30 @@
 
 ## Project Context
 
-This repo is **SBSI's product team workspace** — its primary purpose is to
-hold the Claude Code rules/skills the whole team shares, the scripts that
-support day-to-day product work, and a place to generate demos on demand. It
-is *not* the home for SBSI's production trading-system codebases (OMS, core
-trading engine, market data feed handler, back-office/settlement, customer
-portal) — those are expected to live in their own repos if/when they're
-built. This repo stays light on code by design.
+This repo is **SBSI's product team workspace**. The team supports multiple
+SBSI products at once — currently the **trading web/app**, **SBSI Research
+Hub**, and SBSI's **websites** — and each needs its own specific domain
+knowledge. This repo's job is to hold that shared knowledge, plus the work
+the product team actually produces day to day: documents, design and
+presentation work (graphics, slide decks), scripts to automate tasks, and
+small demo projects to try out ideas.
+
+**We do not code SBSI's products here.** Each product's real codebase lives
+in its own dedicated repo. What lives here instead is: `.claude/` (shared
+Claude Code rules/skills used across the team), `projects/` (per-product
+domain knowledge — see `projects/README.md`), `scripts/` (automation/
+tooling), and `demos/` (small, throwaway idea demos — see
+`demos/README.md`). Design and document/slide work typically happens in
+Figma / Google Drive via the connected integrations rather than as files
+committed here — see `.claude/rules/figma-design.md`.
 
 SBSI itself is a Vietnamese securities brokerage (CTCK); the trading-domain
-context above exists so rules/skills here can reason about the business, not
-because this repo builds that platform.
+context in this file exists so rules/skills here can reason about the
+business, not because this repo builds that platform.
 
-The one existing exception is **SBSI Research Hub** (`apps/research-hub/`)
-— a real sub-project (crowdsourced financial-research and investment-idea
-platform for the Vietnam market, a top-of-funnel product funneling investors
-into SBSI's trading products) that predates this workspace framing and
-continues independently. See `apps/research-hub/CLAUDE.md` for its full
-project context and domain model. Don't treat it as a template for how
-future work in this repo should look — most future additions here should be
-rules/skills/scripts/demos, not new sub-apps.
+See `projects/research-hub/CLAUDE.md`, `projects/trading-web-app/CLAUDE.md`,
+and `projects/websites/CLAUDE.md` for what's known about each product so
+far — several are still placeholders, filled in as the team learns more.
 
 ## Onboard
 
@@ -61,19 +65,21 @@ shape:>
 
 ```
 /<repo-root>
-├── .claude/                # Claude Code settings, rules, skills, hooks — the shared team config (primary content of this repo)
-├── scripts/                 # Product team work scripts (automation, one-off tooling) — see scripts/README.md
-├── demos/                   # Throwaway demo generation, one folder per demo — see demos/README.md
-├── apps/
-│   └── research-hub/       # SBSI Research Hub — existing real sub-project, predates this workspace framing — see apps/research-hub/CLAUDE.md
+├── .claude/                 # Claude Code settings, rules, skills, hooks — the shared team config (primary content of this repo)
+├── projects/                 # Per-product domain knowledge (NOT code) — see projects/README.md
+│   ├── research-hub/        # SBSI Research Hub — see projects/research-hub/CLAUDE.md
+│   ├── trading-web-app/     # SBSI trading web/app — see projects/trading-web-app/CLAUDE.md
+│   └── websites/            # SBSI websites — see projects/websites/CLAUDE.md
+├── scripts/                  # Product team work scripts (automation, one-off tooling) — see scripts/README.md
+├── demos/                    # Throwaway demo generation, one folder per demo — see demos/README.md
 └── ...
 ```
 
-`apps/` is for real, independently-deployable sub-projects — `research-hub`
-is the existing one. Don't add new folders there speculatively; most new
-work belongs in `scripts/` or `demos/` instead. Each major folder should get
-its own `CLAUDE.md` once it has enough domain-specific rules to be worth
-splitting out. Don't create one preemptively for an empty folder.
+`projects/` holds knowledge, never application code — see
+`projects/README.md` for the convention and how to add a new product folder.
+Each major folder should get its own `CLAUDE.md` once it has enough
+domain-specific rules to be worth splitting out. Don't create one
+preemptively for an empty folder.
 
 ## Domain Model
 
@@ -115,9 +121,9 @@ YOUR actual entities/terms, don't assume these names match your schema:
   currency/quantity precision rules — whatever your actual schema uses.>
 
 This root domain model covers the brokerage's core trading entities only.
-Sub-projects with their own distinct domain (e.g. `apps/research-hub/` —
-content/research entities, not trading entities) document their domain model
-in their own `CLAUDE.md` instead of here.
+Individual products with their own distinct domain (e.g.
+`projects/research-hub/` — content/research entities, not trading entities)
+document their domain model in their own `CLAUDE.md` instead of here.
 
 ## Universal Rules
 
