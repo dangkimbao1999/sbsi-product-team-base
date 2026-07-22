@@ -39,5 +39,7 @@ Then add a one-line pointer here: `- [Title](file.md) — one-line hook`.
 
 ## Entries
 
-- [Project structure decision](project-structure-decision.md) — root stays CTCK-framed, Research Hub is a monorepo sub-app under `apps/`
+- [Project structure decision](project-structure-decision.md) — root stays CTCK-framed, each SBSI product gets a knowledge-only folder under `projects/`
 - [Linear project for Research Hub](linear-research-hub-project.md) — team Iambao, project "Stock Research Hub - SBSI", don't create a duplicate
+- [Linear workspace hardcoded](linear-workspace-hardcoded.md) — repo always targets the `iambao` workspace (team Iambao, key IAM); verify with `list_teams` before writing, fail loud on mismatch
+- [Product team workspace reframe](product-team-workspace-reframe.md) — repo's purpose is shared Claude rules/skills + per-product knowledge + scripts + demos; no product (incl. Research Hub) is coded here; enforcement hooks unaffected

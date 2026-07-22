@@ -1,11 +1,38 @@
 # Linear (Issue Tracker) — MCP-based
 
-<Placeholder — fill in your team key/workspace name once known. This rule
-ported the WORKFLOW from the reference project's Linear setup, but that
-project used custom `bun scripts/linear/*.ts` hitting the Linear API
-directly with a personal API key. This project instead uses the connected
-**Linear MCP tools** (no API key file, no scripts) — read
-`.claude/skills/linear-workflow/SKILL.md` for the exact tool-call sequence.>
+This project uses the connected **Linear MCP tools** (no API key file, no
+scripts) — read `.claude/skills/linear-workflow/SKILL.md` for the exact
+tool-call sequence.
+
+## Workspace — hardcoded to a single team, not a placeholder
+
+This repo's Linear workflow always targets **one** workspace: **iambao**
+(https://linear.app/iambao), single team **Iambao** (key `IAM`, id
+`411d7932-6ab6-429f-8ffa-7a852cb87137`). Verified via `list_teams` /
+`list_projects` on 2026-07-22 — see
+`.claude/memory/linear-workspace-hardcoded.md`.
+
+**Why hardcoded:** the connected `linear-server` MCP entry in `.mcp.json`
+(`https://mcp.linear.app/mcp`) is Linear's generic remote server — it is
+NOT workspace-specific by itself. Which workspace it actually talks to
+depends entirely on which Linear account the individual user authenticated
+with during their own OAuth connection. If a teammate's Claude Code is
+connected to a *different* Linear account/workspace (a personal one, or a
+different team's), every "shared" Linear action in this repo (issue
+comments, state transitions, PR-linked nudges) would silently go somewhere
+the rest of the team can't see it.
+
+**MANDATORY verification before the first Linear MCP write action
+(`save_issue`, `save_comment`, `save_project`, etc.) of a session:** call
+`list_teams`. If the result is not exactly team **Iambao** (key `IAM`),
+**stop** — do not create, comment on, or transition anything — and tell the
+human their Linear MCP connection is pointed at the wrong workspace, so
+they can reconnect it to `iambao` before continuing. Do not silently write
+to whichever workspace happens to be connected; see
+`.claude/rules/no-fallbacks.md`. Read-only lookups (`get_issue`,
+`list_comments` for a session already linked via `.claude/.linear-link`)
+don't need re-verification every time, but any write action does if the
+workspace hasn't been checked yet this session.
 
 ## Key architectural fact: hooks cannot call MCP tools
 
@@ -57,11 +84,11 @@ the full picture; comments carry decisions made after creation.
 
 ## What NOT to invent
 
-- Don't hardcode workflow state names, label taxonomy, or team keys here
-  until you've actually called `list_teams` / `get_project` and seen what
-  your workspace really has. The reference project's states (Backlog /
-  Todo / In Progress / In Review / Blocked / Done) were specific to ITS
-  team — yours may differ.
+- Workspace/team is now known and hardcoded above (`iambao` / `Iambao` /
+  `IAM`) — don't invent a different one. Workflow state names and label
+  taxonomy are still NOT verified — don't hardcode those until you've
+  actually called `list_issue_statuses` / `list_issue_labels` and seen what
+  team Iambao really has.
 - Don't build a PII-scanning layer or label-enforcement layer speculatively
   — the reference project's version existed because a real incident (PII
   leak into an issue) forced it. Add that kind of guardrail when you have a
@@ -69,6 +96,8 @@ the full picture; comments carry decisions made after creation.
 
 ## Load this rule when
 
+- Before the first Linear MCP write action of a session (workspace
+  verification).
 - Linking/unlinking a session to a Linear issue.
 - About to comment on, transition, or reference a linked Linear issue.
 - A `linear-*` hook nudge fires in the transcript.

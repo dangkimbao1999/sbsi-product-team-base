@@ -14,4 +14,6 @@ description matching the product brief in [[project-structure-decision]] —
 don't create a duplicate project for Research Hub work. Use the standard
 MCP-based Linear workflow in root `.claude/rules/linear.md` /
 `linear-workflow` skill (session-link file, `save_issue`/`save_comment` via
-MCP tools) for any issues under this project.
+MCP tools) for any issues under this project. See
+[[linear-workspace-hardcoded]] — this `iambao` workspace is the only one
+this repo's Linear workflow should ever touch.
