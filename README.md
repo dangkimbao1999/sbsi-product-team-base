@@ -103,7 +103,23 @@ Linear is connected via MCP — no API keys or scripts needed. Linking a
 session to an issue is optional; do it when a piece of work is worth
 tracking. See `.claude/rules/linear.md` and the `linear-workflow` skill.
 
-### 7. Contributing changes back to this repo
+### 7. GitHub vs. Linear — where does domain knowledge, requirements, and design decisions go?
+
+Pick based on the lifespan of the information, not which tool is more
+convenient in the moment:
+
+| Goes in... | Use for | Why |
+|---|---|---|
+| **GitHub** — `projects/<name>/CLAUDE.md` | Durable, "always true" domain knowledge: what a product is, its vocabulary/entity model, its scope, its tech stack | Auto-loads into every Claude Code session and is version-controlled/diffable — Linear issues don't auto-load and get buried once closed |
+| **Linear** | Requirements and design decisions tied to one specific piece of work: a feature spec, acceptance criteria, "why we chose X" during that ticket's discussion | That's what issues/comments/status already exist for — it's the work-tracking trail |
+| **GitHub** — `.claude/memory/` | A decision made *during* Linear-tracked work that turns out to be durable/repo-wide (affects more than that one ticket) | Bridges the gap: writing it back here means it survives after the ticket closes, instead of only being findable by re-reading old Linear comments |
+
+When in doubt: if it should still be true and worth knowing a year from now
+regardless of any single ticket's status, it belongs in GitHub (`projects/`
+or `.claude/memory/`). If it's scoped to getting one piece of work done
+right now, it belongs in Linear.
+
+### 8. Contributing changes back to this repo
 
 Same git discipline as any codebase, even though most of what's here is
 docs/config rather than app code:
@@ -115,7 +131,7 @@ docs/config rather than app code:
 - See `.claude/rules/git-workflow.md` and the `git-workflow` skill for the
   full procedure.
 
-### 8. Growing the team's shared Claude knowledge
+### 9. Growing the team's shared Claude knowledge
 
 When you (or Claude) learn a convention, correction, or durable fact worth
 keeping for next time, it belongs in one of:
