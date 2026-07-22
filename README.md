@@ -62,9 +62,16 @@ Adding a new product the team starts supporting: create
 
 ### 3. Producing documents, design, and presentations
 
-These deliverables usually live in their native tools, not as files
-committed to this repo:
+This repo stores the **context and rules that make Claude good at
+generating these** — brand voice, product knowledge, design-system
+conventions. The **output artifacts themselves** (the actual doc, deck, or
+design file) live in their native tools, not committed here:
 
+- **What informs the output, kept in this repo**: `.claude/soul.md` (SBSI's
+  brand voice — read before any brand-representing content), the relevant
+  `projects/<name>/CLAUDE.md` (which product this is for and its
+  scope/vocabulary, including any voice deviation from `soul.md`), and
+  `.claude/rules/figma-design.md` (how to drive Figma correctly).
 - **Design work (Figma)** — see `.claude/rules/figma-design.md`. Claude can
   generate new designs, read/edit an existing Figma file you have open, or
   turn a Figma file into a spec/screenshot.

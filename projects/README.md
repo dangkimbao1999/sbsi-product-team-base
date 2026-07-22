@@ -30,3 +30,8 @@ where its issues are tracked, links to its real repo/design files.
   reasoning about SBSI's business; it is not any one project's domain
   model. Each project's own domain model (if it has one) lives in its own
   `CLAUDE.md` here.
+- Root `.claude/soul.md` is SBSI's default brand voice for any
+  brand-representing content (docs, decks, design). If a project's voice
+  deviates from that default (e.g. an analyst-toned research product vs. an
+  aspirational marketing site), note the deviation in that project's own
+  `CLAUDE.md` rather than forking `soul.md`.

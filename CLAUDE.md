@@ -199,10 +199,15 @@ and instructions on how entries get added.
 
 ## Soul & Voice
 
-<If this project has user-facing product surface (UI copy, branding, colors),
-read `.claude/soul.md` before generating any user-facing content and fill it
-in with your actual brand guidelines. If this is a backend-only / internal
-tool, delete this section and `.claude/soul.md`.>
+This repo's whole job includes producing documents, design, and
+presentations — much of it brand-representing or stakeholder-facing. Read
+`.claude/soul.md` before generating any such content (marketing copy,
+investor-facing decks, UI copy, design work) and keep it filled in with
+SBSI's real brand guidelines as they become known — it's still a
+placeholder as of this writing. If a specific product's voice deviates from
+the SBSI-wide default in `.claude/soul.md` (e.g. Research Hub reads more
+analyst-toned than a marketing site), note that deviation in that product's
+own `projects/<name>/CLAUDE.md` rather than forking `soul.md`.
 
 **Files Claude Code auto-loads for instructions:**
 - `CLAUDE.md` at project root and every subdirectory in the working path
