@@ -1,7 +1,7 @@
 # SBSI Product Team Workspace
 
-Shared workspace for **SBSI**'s (a Vietnamese securities brokerage, CTCK)
-product team. The team supports several SBSI products at once — currently
+Shared workspace for **SBSI**'s (a Vietnamese securities company, CTCK —
+Công ty Chứng khoán) product team. The team supports several SBSI products at once — currently
 the **trading web/app**, **Research Hub**, and SBSI's **websites** — using
 Claude Code as a teammate. This repo is where that collaboration lives:
 shared Claude Code rules/skills, per-product knowledge, work scripts, and

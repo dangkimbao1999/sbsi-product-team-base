@@ -1,4 +1,4 @@
-# Domain Model — Securities Brokerage (CTCK)
+# Domain Model — Securities Company (CTCK)
 
 <Placeholder — this rule is EMPTY on purpose. Fill it in only once you've
 read your actual database schema / API contracts, the way

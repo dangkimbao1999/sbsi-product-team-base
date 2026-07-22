@@ -23,9 +23,9 @@ tooling), and `demos/` (small, throwaway idea demos — see
 Figma / Google Drive via the connected integrations rather than as files
 committed here — see `.claude/rules/figma-design.md`.
 
-SBSI itself is a Vietnamese securities brokerage (CTCK); the trading-domain
-context in this file exists so rules/skills here can reason about the
-business, not because this repo builds that platform.
+SBSI itself is a Vietnamese securities company (CTCK — Công ty Chứng khoán);
+the trading-domain context in this file exists so rules/skills here can
+reason about the business, not because this repo builds that platform.
 
 See `projects/research-hub/CLAUDE.md`, `projects/trading-web-app/CLAUDE.md`,
 and `projects/websites/CLAUDE.md` for what's known about each product so

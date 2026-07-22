@@ -1,6 +1,6 @@
 ---
 name: project-structure-decision
-description: Root repo stays framed as SBSI (CTCK/brokerage); each SBSI product gets a knowledge-only folder under projects/, not a coded sub-app
+description: Root repo stays framed as SBSI (CTCK, a Vietnamese securities company); each SBSI product gets a knowledge-only folder under projects/, not a coded sub-app
 metadata:
   type: project
 ---
