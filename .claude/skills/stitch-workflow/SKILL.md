@@ -12,34 +12,23 @@ underlying API's names; the actual callable name is prefixed by the MCP
 connector (confirm with `ToolSearch("select:mcp__stitch")` before first
 use — don't assume the prefix).
 
-## 0. Gather context first
+## 0. Intake first
 
-Before writing any prompt: follow `.claude/rules/stitch-design.md`'s
-workflow steps 1–2 (Linear via `get_issue`/`list_comments`, GitHub via
-existing screens/components/PRs). Skipping this produces a generic Stitch
-prompt with none of the product/design context that made the request
-worth tracking in the first place.
+Before writing any prompt, complete the `design-request-intake` skill in
+full — Linear context, GitHub/codebase context, and platform confirmation
+(mapped here to Stitch's `deviceType`: `MOBILE`/`DESKTOP`/`TABLET`).
+Skipping this produces a generic Stitch prompt with none of the
+product/design context that made the request worth tracking in the first
+place, and risks generating for the wrong platform.
 
-## 1. Platform check
-
-If the request doesn't specify **MOBILE**, **DESKTOP**, or **TABLET**,
-stop here and ask the user via `AskUserQuestion` before calling any
-generation tool. Do not guess based on the app's likely primary platform
-— confirm it. Skip the ask only when:
-
-- The request explicitly names the platform ("mobile app screen",
-  "desktop dashboard"), or
-- You're editing an existing screen — its `deviceType` is already fixed;
-  call `get_screen` to confirm rather than re-asking.
-
-## 2. Build the prompt
+## 1. Build the prompt
 
 ### New screen template
 
 ```
 [Overall purpose and user intent of the page]
 
-PLATFORM: [Mobile/Desktop/Tablet], [confirmed in step 1]
+PLATFORM: [Mobile/Desktop/Tablet], [confirmed during intake]
 
 PAGE STRUCTURE:
 1. Header: [navigation and branding]
@@ -49,7 +38,7 @@ PAGE STRUCTURE:
 4. Footer/Actions: [links, primary/secondary CTAs]
 ```
 
-Ground each section in what you learned in step 0 — actual product
+Ground each section in what you learned during intake — actual product
 terminology from the Linear issue, actual component names already used
 elsewhere in the target app, not generic placeholders.
 
@@ -63,24 +52,23 @@ Change the [element] in the [section] to [new value/behavior].
 Add a [new element] next to [existing element] with [content/behavior].
 ```
 
-## 3. MCP call sequence
+## 2. MCP call sequence
 
 1. `list_projects` — find the project for the target app. If none
    exists, `create_project` (name it after the app, e.g. "SBSI Research
    Hub").
-2. Platform check (step 1 above) if not already resolved.
-3. `generate_screen_from_text` with the enhanced prompt + confirmed
-   `deviceType`, using the target project. For edits, call
+2. `generate_screen_from_text` with the enhanced prompt + the `deviceType`
+   confirmed during intake, using the target project. For edits, call
    `edit_screens` against the existing screen instead.
-4. Read the response's `outputComponents` — it carries a text
+3. Read the response's `outputComponents` — it carries a text
    description, suggestions, and HTML/screenshot URLs.
-5. Download the HTML and screenshot into
+4. Download the HTML and screenshot into
    `.stitch/designs/<app>/<screen-slug>/` (create the directory if
    needed; gitignored, so nothing here needs cleanup before committing
    elsewhere).
-6. Present the description + suggestions + screenshot back to the user.
+5. Present the description + suggestions + screenshot back to the user.
 
-## 4. Iterating
+## 3. Iterating
 
 - **Single revision**: `edit_screens` with a targeted prompt (see Edit
   template above). No need to re-ask platform — it's fixed to the screen

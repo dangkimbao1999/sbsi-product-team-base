@@ -29,36 +29,29 @@ supported here; always go through the MCP tools.
 
 When a request is about design or generating a new screen:
 
-1. **Linear context** — if a Linear ref is linked or mentioned, follow
-   `.claude/rules/linear.md` / the `linear-workflow` skill: `get_issue` +
-   `list_comments` first. Don't rely on the issue title alone.
-2. **GitHub/codebase context** — look at existing screens/components and
-   conventions in the target `apps/<app>/`, and relevant open PRs
-   (`gh pr list`, `gh pr view`).
-3. **Build the prompt** — follow the `stitch-workflow` skill's template
+1. **Intake** — follow the `design-request-intake` skill: Linear context,
+   GitHub/codebase context, and platform confirmation (never default or
+   guess `deviceType` silently) all happen there, shared with the Figma
+   flow. Do this before calling any Stitch generation tool.
+2. **Build the prompt** — follow the `stitch-workflow` skill's template
    (purpose, platform, page structure). Don't hand Stitch the user's raw
    one-liner unedited.
-4. **Platform check** — if the request doesn't say which platform/device
-   the screen targets (mobile app, desktop web, tablet, ...), **ask via
-   AskUserQuestion before generating**. Never default or guess
-   `deviceType` silently. Skip the ask only when the platform is
-   unambiguous from context — explicitly stated in the request, or
-   editing an existing screen whose `deviceType` is already fixed.
-5. **Project** — find or create the Stitch project for the target app
+3. **Project** — find or create the Stitch project for the target app
    (`list_projects` / `create_project`). One Stitch project per app (e.g.
    "SBSI Research Hub").
-6. **Generate** — call `generate_screen_from_text` (or `edit_screens` for
+4. **Generate** — call `generate_screen_from_text` (or `edit_screens` for
    revisions) with the confirmed `deviceType`.
-7. **Save output** — download the HTML/screenshot from the response's
+5. **Save output** — download the HTML/screenshot from the response's
    `outputComponents` into `.stitch/designs/<app>/<screen-slug>/`
    (gitignored scratch — nothing here is auto-committed).
-8. **Report back** — show the AI's description/suggestions and the
+6. **Report back** — show the AI's description/suggestions and the
    screenshot to the user. If Linear-linked, nudge to `save_comment` a
    short summary and the local output path — not a raw attachment
    upload.
 
-See `.claude/skills/stitch-workflow/SKILL.md` for the exact prompt
-template and MCP call sequence.
+See `.claude/skills/design-request-intake/SKILL.md` for step 1 and
+`.claude/skills/stitch-workflow/SKILL.md` for the exact prompt template
+and MCP call sequence (steps 2–5).
 
 ## Load this rule when
 
