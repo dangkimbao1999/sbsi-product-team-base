@@ -16,3 +16,6 @@ build/
 
 # Linear session-link state — machine/session-specific, not shared
 .claude/.linear-link
+
+# Generated Stitch design output (HTML + screenshots) — local scratch only
+.stitch/
