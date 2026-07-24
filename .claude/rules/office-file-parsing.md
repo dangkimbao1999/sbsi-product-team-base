@@ -3,6 +3,10 @@
 Recommended libraries for parsing Office files in this repo. Install with
 `bun add <package>` (never npm/npx per the tech stack rule).
 
+For **writing/generating** `.docx` or `.xlsx` files (e.g. filling a template
+with data, building a document from scratch), see the `office-file-generation`
+skill instead — this rule covers reading/extraction only.
+
 ## Excel (.xlsx / .xls / .csv)
 
 - **`xlsx` (SheetJS Community Edition)** — default choice. Most popular
@@ -40,9 +44,12 @@ Recommended libraries for parsing Office files in this repo. Install with
 
 ## Load this rule when
 
-- Implementing any feature that reads, parses, converts, or generates
-  Excel or Word files.
+- Implementing any feature that reads, parses, or extracts data from Excel
+  or Word files.
 - Choosing a new dependency for Office file I/O.
+
+Load the `office-file-generation` skill instead when the task is to
+*produce* or *populate* a `.docx`/`.xlsx` file.
 
 ## Skip when
 
