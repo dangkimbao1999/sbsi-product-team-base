@@ -133,6 +133,13 @@ See `.claude/rules/working-style.md` — bias toward caution over speed,
 simplicity first, surgical changes, goal-driven execution (RED/GREEN/REFACTOR).
 This rule is generic and should NOT need editing.
 
+### Brainstorm Before Any Deliverable
+
+Before producing any document, demo app, or design/mockup, clarify what
+the output specifically should be — unless the user already fully defined
+it in their prompt. See `.claude/rules/brainstorm-before-deliverables.md`
+and the `brainstorming` skill.
+
 ### Testing — Red/Green TDD (Mandatory)
 
 All code changes MUST follow red/green TDD: RED (failing test first) ->
