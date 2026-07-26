@@ -151,6 +151,14 @@ GREEN (minimum code to pass) -> REFACTOR. See `.claude/rules/tdd.md` and the
 Never implement silent fallback/degraded-mode logic. See
 `.claude/rules/no-fallbacks.md` and `.claude/rules/no-silent-fallbacks.md`.
 
+### Delete & Move — Always Confirm First
+
+Deleting or moving/renaming any file or directory always requires the
+user's explicit go-ahead first, no matter the permission mode (including
+auto/bypassPermissions). Enforced via `permissions.ask` rules in
+`.claude/settings.json`, which force a prompt even under
+`bypassPermissions`. See `.claude/rules/delete-move-confirm.md`.
+
 ### Backward Compatibility
 
 <Delete this section if you don't yet have external consumers (partner SDKs,
