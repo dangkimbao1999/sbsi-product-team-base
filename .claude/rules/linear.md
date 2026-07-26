@@ -82,6 +82,16 @@ the full picture; comments carry decisions made after creation.
 | `gh pr ready <pr>` | `linear-pr-nudge.sh` | If linked, same as above |
 | `gh pr merge <pr>` | `linear-pr-nudge.sh` | If linked, call `save_issue` to move state to your team's "done" equivalent |
 
+## Task wrap-up — no hook, model must recognize the phrase
+
+Unlike the checkpoints above, there's no hook for "sync this finished task
+to Linear" — no shell script can deterministically detect an arbitrary
+natural-language request. See the `linear-workflow` skill's "Wrapping up a
+task" section for the two branches (create a new issue vs. comment on one
+the user already wrote). Both branches only fire on an explicit instruction
+("lưu vào Linear", "chốt lên Linear", ...) — never on a bare "xong
+rồi"/"done", to keep the Linear ref genuinely optional.
+
 ## What NOT to invent
 
 - Workspace/team is now known and hardcoded above (`iambao` / `Iambao` /
@@ -101,6 +111,7 @@ the full picture; comments carry decisions made after creation.
 - Linking/unlinking a session to a Linear issue.
 - About to comment on, transition, or reference a linked Linear issue.
 - A `linear-*` hook nudge fires in the transcript.
+- The user explicitly asks to sync/save a finished task's results to Linear.
 
 ## Skip when
 
