@@ -3,7 +3,29 @@
     "commit": "Author: Claude Code <noreply@anthropic.com>"
   },
   "permissions": {
-    "deny": []
+    "deny": [],
+    "ask": [
+      "Bash(rm *)",
+      "Bash(rmdir *)",
+      "Bash(unlink *)",
+      "Bash(mv *)",
+      "Bash(git rm *)",
+      "Bash(git mv *)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(ri *)",
+      "PowerShell(rd *)",
+      "PowerShell(del *)",
+      "PowerShell(erase *)",
+      "PowerShell(rmdir *)",
+      "PowerShell(rm *)",
+      "PowerShell(Move-Item *)",
+      "PowerShell(mi *)",
+      "PowerShell(move *)",
+      "PowerShell(mv *)",
+      "PowerShell(Rename-Item *)",
+      "PowerShell(rni *)",
+      "PowerShell(ren *)"
+    ]
   },
   "hooks": {
     "SessionStart": [
