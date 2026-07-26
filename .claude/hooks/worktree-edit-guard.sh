@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # worktree-edit-guard.sh — PreToolUse hook on Edit / Write / MultiEdit / NotebookEdit.
 #
 # Two independent invariants enforced; failing either blocks the tool call.
@@ -22,6 +22,15 @@
 # compare file_path's own git root before applying that rule. If you hit
 # this while editing an unrelated project from a primary-main session, use
 # Bash (heredoc/cat) to write the file instead, or create a worktree first.
+#
+# FIXED (2026-07-26): the .claude/* exemption in check 2 used a forward-slash
+# case pattern only, so it silently never matched on Windows — Claude Code
+# delivers file_path there with backslashes (e.g. C:\Users\...\.claude\...),
+# meaning every .claude/ edit was wrongly blocked from primary main on
+# Windows. Fixed by normalizing FILE_PATH to forward slashes right after
+# extraction, below — a safe no-op on macOS/Linux, where paths never contain
+# backslashes to begin with, so the same normalized value is used
+# consistently on all three platforms for every check in this script.
 
 set -uo pipefail
 
@@ -30,6 +39,11 @@ INPUT=$(cat)
 FILE_PATH=$(printf '%s' "$INPUT" | grep -o '"file_path":"[^"]*"' | head -1 | cut -d'"' -f4)
 
 [ -z "$FILE_PATH" ] && exit 0
+
+# Normalize path separators (Windows delivers backslashes; case-pattern
+# globs and the dirname/git calls below expect forward slashes). No-op on
+# macOS/Linux.
+FILE_PATH="${FILE_PATH//\\//}"
 
 ACTIVE_ROOT="${CLAUDE_PROJECT_DIR:-}"
 if [ -z "$ACTIVE_ROOT" ]; then
@@ -86,7 +100,7 @@ if [ -n "$ACTIVE_ROOT" ]; then
     BRANCH=$(git -C "$ACTIVE_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
     if [ "$BRANCH" = "main" ]; then
       case "$FILE_PATH" in
-        */.claude/*|*\.claude/*) exit 0 ;;
+        .claude/*|*/.claude/*) exit 0 ;;
       esac
       cat >&2 <<'EOM'
 BLOCKED: You are in the primary worktree on main. Create a worktree before editing code.
