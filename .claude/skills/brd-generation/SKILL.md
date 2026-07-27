@@ -22,25 +22,35 @@ text (e.g. `‹điền›`, `‹Tên sản phẩm / tính năng›`), meant for 
 type over in Word — **not** `docxtemplater`-style `{tags}`. Verified by
 extracting `word/document.xml` directly; don't assume otherwise.
 
-Two ways to generate from it — pick based on what the task needs:
+Three ways to generate from it — pick based on what the task needs:
 
-1. **Tag it once, then template-fill with `docxtemplater`** (recommended
-   for repeated/automated BRD generation going forward). Preserves the
-   exact original branding (navy `#1F3864` header shading, Times New
-   Roman, borders, spacing) pixel-for-pixel. Requires a one-time pass
-   replacing each `‹placeholder›` with a `{tag}` and wrapping each
-   variable-length table's data row with docxtemplater row-loop syntax
-   (`{#objectives}` in the first cell of the loop row, `{/objectives}` in
-   the last cell of the same row).
-2. **Rebuild from scratch with the `docx` package** (fine for a one-off).
-   Mirror this skill's section list/order/table columns below; you won't
-   get the exact original table shading/borders unless you replicate them
-   explicitly in the `docx` builder API.
+1. **Copy the template and edit its XML directly, no tagging** (default —
+   validated end-to-end 2026-07-26, see
+   `office-file-generation` skill's "Word — filling an existing template
+   without pre-tagging (direct XML DOM edit)" section for the full
+   technique). Preserves the exact original branding (navy `#1F3864`
+   header shading, Times New Roman, borders, `tblGrid`) pixel-for-pixel,
+   with no manual Word-UI step and no risk of ever touching the real
+   template file. This is now the default choice unless the task
+   specifically wants a reusable `{tag}`-based master (option 2).
+2. **Tag it once, then template-fill with `docxtemplater`** (worth it only
+   if the team wants a permanently reusable tagged master for repeated
+   future BRDs edited by hand in Word). Requires a one-time pass replacing
+   each `‹placeholder›` with a `{tag}` and wrapping each variable-length
+   table's data row with docxtemplater row-loop syntax (`{#objectives}` in
+   the first cell of the loop row, `{/objectives}` in the last cell of the
+   same row).
+3. **Rebuild from scratch with the `docx` package** (last resort — only if
+   the copy/edit-XML approach genuinely doesn't fit). Mirror this skill's
+   section list/order/table columns below; you won't get the exact
+   original table shading/borders unless you replicate them explicitly in
+   the `docx` builder API, and you must set `columnWidths` explicitly (see
+   the column-collapse pitfall in `office-file-generation`) or tables can
+   render broken.
 
-If asked to actually generate a BRD and no tagged master exists yet, ask
-the user which path they want before choosing — tagging is more work
-up-front but pays off on the next BRD; from-scratch is faster for a single
-one-off but must still hit every mandatory section below.
+Default to option 1. Only ask the user which path they want if they
+specifically mention wanting a reusable tagged master (option 2) or if
+option 1 hits something this skill doesn't anticipate.
 
 ## Document structure (verbatim from the template)
 
@@ -156,11 +166,24 @@ reference it.
 3. Assign IDs sequentially per the coding scheme above as content is
    filled in, keeping cross-references (`Tham chiếu mục tiêu`, `Tham chiếu
    yêu cầu`, `Tham chiếu (BR/OBJ)`) consistent.
-4. Generate via the chosen path (tagged docxtemplater render, or `docx`
-   package build) — see `office-file-generation` skill for the mechanics.
-5. Write output to a new file, never overwrite `assets/BRD_Template.docx`
-   — e.g. `<product-code>-brd.docx` in the location the user specifies.
-6. Note to the user: the template's "Mục lục" (table of contents) is a
+4. Copy `assets/BRD_Template.docx` to a scratch working file first — never
+   open/edit the template path itself.
+5. Generate via the chosen path — default is the direct XML DOM edit on
+   the copy (option 1 above); see `office-file-generation` skill's
+   "Word — filling an existing template without pre-tagging" section for
+   the full technique (helper functions, guidance-paragraph deletion,
+   row/block cloning, the header-row off-by-one gotcha, validation steps).
+6. Write output to a new file, never overwrite `assets/BRD_Template.docx`
+   or the scratch copy in place — e.g. `<product-code>-brd.docx` in the
+   location the user specifies.
+7. Validate before handing off: `unzip -t` for zip integrity, then dump
+   the **full** document text with `mammoth` and read it end to end,
+   checking every table's rows land under the right headers/labels (the
+   header-row skip is easy to get wrong and silently shifts a whole
+   table by one row). Grep for any remaining `‹...›` placeholders and
+   report genuinely-unresolved ones back to the user rather than
+   inventing values.
+8. Note to the user: the template's "Mục lục" (table of contents) is a
    Word TOC field — remind them to update fields (Word: right-click → Update
    Field, or Update Table) after opening the generated file, since
    generated page numbers/section listing won't be live until Word
