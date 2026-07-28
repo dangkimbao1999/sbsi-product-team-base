@@ -25,7 +25,8 @@
       "type": "stdio",
       "command": "bunx",
       "args": [
-        "stitch-mcp@latest"
+        "@_davideast/stitch-mcp@latest",
+        "proxy"
       ],
       "env": {}
     }

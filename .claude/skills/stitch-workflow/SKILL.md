@@ -5,12 +5,23 @@ description: Generate, edit, or vary UI screens with the Stitch MCP server, afte
 
 # Stitch Workflow
 
-This project has no bundled Stitch plugin (unlike the community
-`stitch-skills`/`stitchkit` repos) — it talks directly to whichever
-`stitch` MCP server is configured in `.mcp.json`. Tool names below are the
-underlying API's names; the actual callable name is prefixed by the MCP
-connector (confirm with `ToolSearch("select:mcp__stitch")` before first
-use — don't assume the prefix).
+This skill covers the raw MCP call sequence against whichever `stitch`
+server is configured in `.mcp.json` (currently `@_davideast/stitch-mcp` —
+see `.claude/rules/stitch-design.md`). Tool names below are the underlying
+API's names; the actual callable name is prefixed by the MCP connector
+(confirm with `ToolSearch("select:mcp__stitch")` before first use — don't
+assume the prefix).
+
+If the `stitch-skills` plugin
+(https://github.com/google-labs-code/stitch-skills) is installed locally
+(a global, per-developer install — see `.claude/rules/stitch-design.md`),
+its `stitch::*` skills (`stitch::generate-design`, `stitch::code-to-design`,
+`stitch::react-components`, ...) cover the same ground with more
+task-specific prompts/validation. Prefer this skill's flow when you want
+the intake-driven, SBSI-specific prompt template below; reach for a
+`stitch::*` skill when its more specialized workflow (e.g. converting
+existing frontend code to a Stitch design, or Stitch screens to React
+components) fits the task better.
 
 ## 0. Intake first
 
