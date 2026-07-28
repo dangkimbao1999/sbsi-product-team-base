@@ -1,29 +1,68 @@
 # Stitch Design Integration
 
 [Google Stitch](https://stitch.withgoogle.com) generates UI screens from
-text prompts. Unlike Figma, Stitch has no plugin/bridge model — the only
-way in is the `stitch` MCP server (`.mcp.json`), backed by Google Cloud's
-`stitch.googleapis.com` API. There is no web-automation fallback needed or
-supported here; always go through the MCP tools.
+text prompts. This repo uses two separate pieces — keep them distinct:
+
+- **MCP server** (`.mcp.json` -> `"stitch"`) — the live connection Claude
+  Code calls tools through. Runs
+  [`@_davideast/stitch-mcp`](https://github.com/davideast/stitch-mcp) via
+  `bunx`, which proxies the official Stitch API and layers a few virtual
+  tools on top of the upstream ones: `build_site`, `get_screen_code`,
+  `get_screen_image`. This is repo-tracked, committed config — every
+  developer gets the same server definition.
+- **Skill content** —
+  [`google-labs-code/stitch-skills`](https://github.com/google-labs-code/stitch-skills),
+  a set of `stitch::*`-prefixed Agent Skills (`stitch::generate-design`,
+  `stitch::code-to-design`, `stitch::react-components`, ...). This is
+  installed as a **global, per-developer Claude Code plugin** (see below)
+  — NOT vendored into this repo, the same category as the TalkToFigma
+  bridge in `.claude/rules/figma-design.md`. This repo's own
+  `design-request-intake` / `stitch-workflow` skills still own the intake
+  step (Linear + GitHub context, platform confirmation) before handing off
+  to whichever `stitch::*` skill fits the task.
+
+There is no web-automation fallback needed or supported here; always go
+through the MCP tools.
 
 ## One-time per-developer setup (not scripted — interactive)
 
-`gcloud auth` steps can't be run on your behalf; run them yourself
-(suggest the `! <command>` prefix in a Claude Code session):
+### 1. MCP server auth
 
-1. Create or select a GCP project and enable the Stitch API on it:
-   `gcloud config set project <PROJECT_ID>` then
-   `gcloud beta services mcp enable stitch.googleapis.com`.
-2. `gcloud auth application-default login`.
-3. Export `GOOGLE_CLOUD_PROJECT=<PROJECT_ID>` in your shell profile (not
-   committed — this is per-developer, like the rest of your gcloud
-   config).
-4. Add `"stitch"` to the `enabledMcpjsonServers` array in your local
-   `.claude/settings.local.json` (gitignored — mirrors how
-   `chrome-devtools`/`TalkToFigma`/`linear-server` are already enabled
-   there).
-5. Verify: `ToolSearch("select:mcp__stitch")` should return the server's
-   tools once the above is in place.
+Auth steps can't be run on your behalf; run them yourself (suggest the
+`! <command>` prefix in a Claude Code session):
+
+- **Recommended — guided wizard**:
+  `bunx @_davideast/stitch-mcp@latest init` — walks through client
+  selection (pick Claude Code), auth mode (API key is simplest, no gcloud
+  needed), transport, and writes your MCP client config for you.
+- **Manual gcloud** (if you already run gcloud for other tools):
+  ```bash
+  gcloud auth application-default login
+  gcloud config set project <PROJECT_ID>
+  gcloud beta services mcp enable stitch.googleapis.com --project=<PROJECT_ID>
+  ```
+  then set `STITCH_USE_SYSTEM_GCLOUD=1` in the `stitch` entry's `env`
+  block via your local `.claude/settings.local.json` override (gitignored)
+  so the proxy uses your system gcloud instead of its bundled one.
+- Either way, add `"stitch"` to the `enabledMcpjsonServers` array in your
+  local `.claude/settings.local.json` (gitignored — mirrors how
+  `chrome-devtools`/`TalkToFigma`/`linear-server` are already enabled
+  there).
+- Verify: `bunx @_davideast/stitch-mcp@latest doctor`, then
+  `ToolSearch("select:mcp__stitch")` should return the server's tools.
+
+### 2. Skill plugin (stitch-skills)
+
+```bash
+bunx plugins add google-labs-code/stitch-skills --scope project --target claude-code
+```
+
+Despite `--scope project`, this third-party `plugins` CLI (unrelated to
+`stitch-skills`' own maintainers) records the enablement in your
+**user-level** `~/.claude/settings.json` (`enabledPlugins`), not anything
+project-scoped or git-tracked — confirmed 2026-07-28. Nothing this command
+writes belongs in this repo's git history; each developer runs it once on
+their own machine, and it isn't inherited by teammates automatically.
 
 ## The workflow
 
@@ -58,6 +97,8 @@ and MCP call sequence (steps 2–5).
 - The user asks to design, mock up, or generate a new screen/UI.
 - The user mentions Stitch or `stitch.withgoogle.com`.
 - A `mcp__stitch__*` tool call is about to be made.
+- A `stitch::*` skill (from the `stitch-skills` plugin) is available and
+  relevant, e.g. `stitch::code-to-design`, `stitch::react-components`.
 
 ## Skip when
 
