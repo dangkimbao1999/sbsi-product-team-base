@@ -1,6 +1,7 @@
 # Git Workflow
 
 Key reminders:
+- Always sync `main` before branching — `git fetch origin && git checkout main && git pull --ff-only origin main` in the primary checkout, before the first `EnterWorktree` of a session
 - Feature branches: `feat/`, `fix/`, `chore/` — never commit to main directly
 - Always work in a worktree — never in the primary checkout (main)
 - Stage specific files only (never `git add -A` or `git add .`)
