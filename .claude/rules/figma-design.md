@@ -14,6 +14,19 @@ silently). This is the same intake step used by the Stitch flow
 procedure. Skip it for pure edits to an already-identified file/frame,
 where the platform and context are already fixed by what's open.
 
+## Color tokens — SBSI design system
+
+Follow `.claude/rules/design-system.md` for every color decision (semantic
+role tokens, Light+Dark, price-color convention, chart palettes). Before
+picking a color by hand from `.claude/design-system/tokens-SBSI-design-system-v1.json`,
+try resolving it live first: `search_design_system` /
+`get_variable_defs` (official Figma MCP) or `get_styles` (TalkToFigma) can
+pull directly from SBSI's actual Figma library/variables if it's connected
+in the target file — that resolves aliases correctly, which the static
+JSON export can't fully guarantee (see the "Known gap" section in
+`.claude/design-system/README.md`). Fall back to the JSON file only when
+the live library isn't reachable.
+
 ## 1. Official Figma MCP (`mcp__claude_ai_Figma__*`)
 
 Connected account-level integration, already authenticated (verify with

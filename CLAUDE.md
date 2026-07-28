@@ -21,7 +21,9 @@ domain knowledge — see `projects/README.md`), `scripts/` (automation/
 tooling), and `demos/` (small, throwaway idea demos — see
 `demos/README.md`). Design and document/slide work typically happens in
 Figma / Google Drive via the connected integrations rather than as files
-committed here — see `.claude/rules/figma-design.md`.
+committed here — see `.claude/rules/figma-design.md`. SBSI's design tokens
+(colors, shared across all products) are committed at
+`.claude/design-system/` — see `.claude/rules/design-system.md`.
 
 SBSI itself is a Vietnamese securities company (CTCK — Công ty Chứng khoán);
 the trading-domain context in this file exists so rules/skills here can
@@ -139,6 +141,13 @@ Before producing any document, demo app, or design/mockup, clarify what
 the output specifically should be — unless the user already fully defined
 it in their prompt. See `.claude/rules/brainstorm-before-deliverables.md`
 and the `brainstorming` skill.
+
+### Design System — Colors
+
+SBSI's color tokens (semantic Light/Dark roles + base scale, colors only
+so far) are committed at `.claude/design-system/` and apply to every SBSI
+product. Any design generation (Figma or Stitch) or UI code must use these
+tokens instead of inventing colors. See `.claude/rules/design-system.md`.
 
 ### Testing — Red/Green TDD (Mandatory)
 
