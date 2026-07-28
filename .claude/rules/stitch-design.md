@@ -39,19 +39,26 @@ When a request is about design or generating a new screen:
 3. **Project** — find or create the Stitch project for the target app
    (`list_projects` / `create_project`). One Stitch project per app (e.g.
    "SBSI Research Hub").
-4. **Generate** — call `generate_screen_from_text` (or `edit_screens` for
+4. **Design system** — per `.claude/rules/design-system.md`, don't let
+   Stitch guess SBSI's palette. Stitch's design-system tools don't accept
+   the raw token JSON directly (they take a simplified theme: one
+   `customColor`, `colorMode`, fonts, `roundness`, plus a free-form
+   `designMd`) — see `.claude/skills/stitch-workflow/SKILL.md` for the
+   exact call sequence to create/reuse a project design-system asset and
+   apply it to generated screens.
+5. **Generate** — call `generate_screen_from_text` (or `edit_screens` for
    revisions) with the confirmed `deviceType`.
-5. **Save output** — download the HTML/screenshot from the response's
+6. **Save output** — download the HTML/screenshot from the response's
    `outputComponents` into `.stitch/designs/<app>/<screen-slug>/`
    (gitignored scratch — nothing here is auto-committed).
-6. **Report back** — show the AI's description/suggestions and the
+7. **Report back** — show the AI's description/suggestions and the
    screenshot to the user. If Linear-linked, nudge to `save_comment` a
    short summary and the local output path — not a raw attachment
    upload.
 
 See `.claude/skills/design-request-intake/SKILL.md` for step 1 and
 `.claude/skills/stitch-workflow/SKILL.md` for the exact prompt template
-and MCP call sequence (steps 2–5).
+and MCP call sequence (steps 2–6).
 
 ## Load this rule when
 

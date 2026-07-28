@@ -56,6 +56,15 @@ Map the confirmed platform to whatever the destination tool needs:
   desktop web frame) — set this explicitly when creating the frame in
   `use_figma`/`create_new_file` rather than leaving Figma's default.
 
+## 3.5 Color mode
+
+SBSI's design system (`.claude/rules/design-system.md`) defines every
+color role for both Light and Dark. If the request doesn't say which
+mode(s) to generate for, ask alongside the platform question rather than
+defaulting to Light silently — same reasoning as the platform check: a
+wrong guess means regenerating from scratch (Stitch in particular needs a
+separate design-system asset per mode, see `stitch-workflow`).
+
 ## 4. Hand off
 
 Once context (steps 1–2) and platform (step 3) are settled, proceed to
