@@ -1,7 +1,7 @@
 # Git Workflow
 
 Key reminders:
-- Always sync `main` before branching — `git fetch origin && git checkout main && git pull --ff-only origin main` in the primary checkout, before the first `EnterWorktree` of a session
+- Always sync `main` before branching — `git fetch origin && git checkout main && git pull --ff-only origin main` in the primary checkout, before the first `EnterWorktree` of a session. Backed by the `sync-main-nudge.sh` hook (see below) so this doesn't rely on remembering to do it manually.
 - Feature branches: `feat/`, `fix/`, `chore/` — never commit to main directly
 - Always work in a worktree — never in the primary checkout (main)
 - Stage specific files only (never `git add -A` or `git add .`)
@@ -40,6 +40,25 @@ env-var prefix is the record of consent, earned via:
 
 **Skipping draft entirely** (`PROJECT_PR_NON_DRAFT=1 gh pr create …`): same
 Path B logic — only when the human has explicitly instructed a ship-now flow.
+
+## Sync-main enforcement (`sync-main-nudge.sh`)
+
+Fires PreToolUse on `EnterWorktree`, before `serial-worktree-guard.sh`.
+`EnterWorktree`'s default `baseRef` ("fresh") already branches new
+worktrees from `origin/<default-branch>`, so a stale *local* main never
+leaks into a new branch's content — this hook exists for the primary
+checkout itself, whose stale local main misleads manual git investigation
+(e.g. "is this branch already merged?").
+
+- Always runs `git fetch origin <default-branch>` first — deterministic,
+  doesn't depend on the model remembering.
+- If the primary checkout is on the default branch, its tracked working
+  tree is clean, and local main fast-forwards cleanly to `origin/main`: auto
+  fast-forwards it (safe, non-destructive, no history rewrite).
+- Otherwise (dirty tree, diverged history, checked out elsewhere): prints a
+  stderr nudge with the exact commands to sync manually. Never blocks
+  `EnterWorktree` — the new worktree's branch point is unaffected either way.
+- Fails open: offline / fetch failure / not a git worktree → stays silent.
 
 ## Serial Worktree / PR Policy (enforced by hooks)
 
