@@ -1,0 +1,15 @@
+{
+  "name": "sbsi-product-team",
+  "owner": {
+    "name": "SBSI Product Team"
+  },
+  "description": "Shared Claude Code rules, skills, sub-agents, hooks, and MCP connectors used by SBSI's product team across the trading web/app, Research Hub, and websites.",
+  "plugins": [
+    {
+      "name": "sbsi-product-team-core",
+      "source": "./",
+      "description": "Core SBSI product team toolkit: BRD/office-file generation, PO requirement refinement workflow, TDD and git-workflow conventions, Figma/Stitch design intake, Linear workflow, and the design-system/domain rules shared across all SBSI products.",
+      "version": "0.1.0"
+    }
+  ]
+}
