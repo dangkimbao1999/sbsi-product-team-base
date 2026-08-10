@@ -1,4 +1,4 @@
-﻿---
+---
 name: office-file-generation
 description: Generate or populate Word (.docx) and Excel (.xlsx) files programmatically — fill an existing template with data (e.g. a BRD template) or build a new file from scratch. Use when asked to produce, write, generate, or populate a docx/xlsx file, or to create a document "based on" an existing Office template.
 ---

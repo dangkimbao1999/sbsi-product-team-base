@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "sbsi-product-team-core",
+  "displayName": "SBSI Product Team Core",
+  "version": "0.1.0",
+  "description": "Core SBSI product team toolkit: BRD/office-file generation, PO requirement refinement workflow, TDD and git-workflow conventions, Figma/Stitch design intake, Linear workflow, and the design-system/domain rules shared across all SBSI products.",
+  "author": {
+    "name": "SBSI Product Team"
+  },
+  "repository": "https://github.com/dangkimbao1999/sbsi-product-team-base",
+  "skills": "./.claude/skills/",
+  "agents": [
+    "./.claude/agents/coder.md",
+    "./.claude/agents/po-backlog-planner.md",
+    "./.claude/agents/po-requirement-reviewer.md",
+    "./.claude/agents/po-requirement-writer.md",
+    "./.claude/agents/reviewer.md"
+  ],
+  "mcpServers": "./.mcp.json"
+}
