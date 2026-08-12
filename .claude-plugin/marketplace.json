@@ -10,6 +10,7 @@
       "source": "./",
       "description": "Core SBSI product team toolkit: BRD/office-file generation, PO requirement refinement workflow, TDD and git-workflow conventions, Figma/Stitch design intake, Linear workflow, and the design-system/domain rules shared across all SBSI products.",
       "version": "0.2.0"
+
     }
   ]
 }
