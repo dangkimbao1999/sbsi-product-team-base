@@ -60,7 +60,7 @@ shape:>
 - **Mobile**: <...>
 - **Cloud provider**: <AWS / GCP / Azure / none yet>
 - **IaC**: <Pulumi / Terraform / CDK / none yet>
-- **Issue tracker**: Linear (via connected MCP tools) — see `.claude/rules/linear.md`
+- **Issue tracker**: Jira (Atlassian Rovo MCP, SAFe process) — see `.claude/rules/jira.md`. Linear also remains connected (see `.claude/rules/linear.md`) but is not the PO's primary tracker — ask which one a task should sync to if unclear.
 - **Feature flags**: <Statsig / LaunchDarkly / none yet>
 
 ## Folder Structure
@@ -205,13 +205,25 @@ reference project does — e.g. "check the PR diff against
 `.claude/rules/domain-model.md`, `.claude/rules/<your-other-domain-rule>.md`".
 Empty for now — add rules here as you write them.>
 
-## Issue Tracker (Linear)
+## Issue Tracker (Jira + Linear)
 
-Linear is connected via MCP (no custom scripts, no API key file — see
-`.claude/rules/linear.md` and the `linear-workflow` skill). A Linear ref is
-always OPTIONAL. Because hooks cannot call MCP tools directly, the
-PR/plan/session lifecycle hooks only NUDGE — the model still has to act on
-each nudge by calling the connected Linear MCP tool itself.
+**Jira** (Atlassian Rovo MCP) is the PO's real tracker, run under a SAFe
+process — see `.claude/rules/jira.md` and the `jira-workflow` skill. Its
+site/project/issue-type scheme is not yet verified against a live
+connection; don't hardcode any of that, confirm it once connected.
+
+**Linear** is also connected via MCP (no custom scripts, no API key file —
+see `.claude/rules/linear.md` and the `linear-workflow` skill) and its
+workspace (`iambao`/`IAM`) is already verified from earlier setup, but it
+is not this PO's primary tracker — don't assume a task syncs there just
+because it was set up first.
+
+A tracker ref (Jira or Linear) is always OPTIONAL, and it's optional
+*which* tracker too — ask if a sync request doesn't name one. Because
+hooks cannot call MCP tools directly, the PR/plan/session lifecycle hooks
+only NUDGE for Linear specifically — the model still has to act on each
+nudge by calling the connected MCP tool itself, and there's no equivalent
+automatic nudge wired up for Jira yet.
 
 ## Shared Memory
 
