@@ -123,6 +123,10 @@ Cowork's task list widget shows the pipeline progressing stage by stage.
    Epic / Backlog Items (FE/BE/Integration-Data/QA) / Dependencies /
    Suggested Delivery Order.
 10. **Show the Final Backlog** to the user. Workflow complete.
+    - This skill never auto-pushes the backlog anywhere. If the user
+      separately asks to sync it to a tracker, route to `jira-workflow`
+      (SAFe/Jira, this PO's primary tracker — see `.claude/rules/jira.md`)
+      or `linear-workflow`, whichever the user names; ask if unclear.
 
 ## Human Decision Boundary (non-negotiable)
 
