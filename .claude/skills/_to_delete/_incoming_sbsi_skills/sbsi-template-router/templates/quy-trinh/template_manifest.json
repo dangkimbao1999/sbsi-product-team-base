@@ -1,0 +1,25 @@
+{
+  "template_id": "sbsi-quy-trinh-v1",
+  "document_type": "quy_trinh",
+  "_comment": "Structural exceptions for sbsi-docx-format-core's validator/normalizer, discovered by inspecting this template's actual OOXML (word/document.xml, word/styles.xml). Every value below is the engine's own generic default — listed explicitly so future template registrations have a concrete example to copy and edit, and so a reviewer can see at a glance what was verified against the real file rather than assumed.",
+
+  "cover_page_strategy": "page_break_before",
+  "_cover_page_strategy_note": "Verified: paragraph 'Số: .../QĐ-TGĐ, Hà Nội, ngày...' (the promulgation-page opener) has <w:pageBreakBefore/>, immediately after the cover + doc-info table + TOC on page 1. Everything before it is excluded from ordinary-text/numbering checks.",
+
+  "appendix_heading_pattern": "^(Phụ\\s*lục|PHỤ\\s*LỤC)\\b",
+  "_appendix_heading_pattern_note": "Verified: 'Phụ lục số: NN' paragraphs mark each appendix (Danh mục tài liệu tham khảo uses manually-numbered '1. ... 2. ...' legal citations with no numPr — tolerated as a WARNING, not blocking, inside this zone).",
+
+  "structural_heading_patterns": [],
+  "_structural_heading_patterns_note": "No additions needed: this template's real hierarchy uses paragraph styles 'Style1' (outline level 0, auto-numbered 'Chương %1' via its own numbering definition) and 'Style2' (outline level 1, auto-numbered 'Điều %1.' via numId 19) — both real Word outline levels, so the engine's generic default Chương/Điều text-pattern check correctly never fires as a false positive here (there is no bold-Normal text mimicking that vocabulary in this template).",
+
+  "known_style_hierarchy": {
+    "Style1": {"outline_level": 0, "role": "Chương-equivalent top-level section"},
+    "Style2": {"outline_level": 1, "role": "Điều-equivalent sub-section"}
+  },
+  "_known_style_hierarchy_note": "Informational only (not read by the scripts) — for a human/agent registering a future template to see a worked example of how to record a template's actual style-to-outline-level mapping instead of assuming 'Chương/Điều' literal style names.",
+
+  "toc_field_switches": "\\z \\o \"1-3\" \\u \\h",
+  "_toc_field_switches_note": "Informational: confirms the TOC field is outline-level-driven (levels 1-3), consistent with Style1/Style2 mapping to outline 0/1.",
+
+  "known_rendering_caveat": "LibreOffice (used by render_qa.py) did not clearly honor this template's paragraph-level 'numPr numId=\"0\"' override on the Style1 heading the same way Word does during manual verification — treat render_qa.py's PDF/PNG output as a strong visual-QA proxy, not a guaranteed Word-identical render. Confirm final numbering appearance in real Word before high-stakes distribution."
+}
