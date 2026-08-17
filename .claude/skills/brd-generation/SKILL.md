@@ -51,19 +51,22 @@ declare otherwise) report BRD as non-compliant. Chương/Điều
 heading-vocabulary and Khoản/Điểm numbering rules don't apply to BRD's
 plain numbered sections either way, and never did.
 
-**Separately, a real pre-existing typography inconsistency was found
-in `BRD_Template.docx` itself (2026-08-17), unrelated to the above:** even
-with the correct 12pt manifest applied, `validate_sbsi_docx.py` still
-reports ~31 blocking Font findings — many ordinary-body runs are directly
-overridden to 11pt (`sz=22`) or a bracketed `[BẮT BUỘC]`/`[KHUYẾN NGHỊ]` tag
-at 10pt (`sz=20`) instead of the style-declared 12pt, and a few sub-labels
-(e.g. "Thông tin chung") sit exactly at 13pt (`sz=26`). This is real drift
-inside the live template file (most likely from past copy/paste edits), not
-a validator false positive — do **not** silently "fix" it by further
-loosening the validator or by force-normalizing the template file without
-asking; it's a PTSP template-owner decision whether/how to clean it up.
-Flag it to the user if it comes up rather than treating BRD as fully
-format-core-clean today.
+**A real pre-existing typography inconsistency inside `BRD_Template.docx`
+itself was found and fixed (2026-08-17):** many ordinary-body runs were
+directly overridden to 11pt (`sz=22`) or a bracketed
+`[BẮT BUỘC]`/`[KHUYẾN NGHỊ]` tag at 10pt (`sz=20`) instead of the
+style-declared 12pt, and a few sub-labels sat exactly at 13pt (`sz=26`) —
+real drift inside the live template file (most likely from past copy/paste
+edits), not a validator false positive. Fixed by running
+`normalize_ordinary_text.py` against the canonical template itself with its
+own manifest, verified beforehand (byte-identical text content across all
+82 paragraphs, same 20 zip parts, TOC field intact) and verified after
+(`validate_sbsi_docx.py` now PASS, 0 warnings). **Not verified**: rendered
+appearance in real Word — this environment has no LibreOffice for a
+render/visual QA pass, only the structural checks above ran. If a future
+edit to this template reintroduces size drift, don't silently loosen the
+validator or re-normalize without telling the user first — that's exactly
+the shortcut this fix avoided taking.
 
 ## Important: this template has no merge tags
 

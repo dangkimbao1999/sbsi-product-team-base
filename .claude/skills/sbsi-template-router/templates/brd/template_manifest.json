@@ -1,7 +1,7 @@
 {
   "template_id": "sbsi-brd-v1",
   "document_type": "brd",
-  "_comment": "Structural/typography exceptions for sbsi-docx-format-core's shared validator/normalizer, verified against this template's real OOXML (word/document.xml, word/styles.xml) on 2026-07-26 and re-confirmed 2026-08-17. BRD is a different document genre (business/product doc owned by PTSP, not an internal governance/legal doc) with its own long-standing typography and section-title convention — recorded explicitly here so the SAME shared engine that formats Quy trình/Quy định/etc. can run against BRD too, instead of BRD being silently skipped or silently forced onto the governance-document defaults.",
+  "_comment": "Structural/typography exceptions for sbsi-docx-format-core's shared validator/normalizer, verified against this template's real OOXML (word/document.xml, word/styles.xml) on 2026-07-26 and re-confirmed 2026-08-17. BRD is a different document genre (business/product doc owned by PTSP, not an internal governance/legal doc) with its own long-standing typography and section-title convention — recorded explicitly here so the SAME shared engine that formats Quy trình/Quy định/etc. can run against BRD too, instead of BRD being silently skipped or silently forced onto the governance-document defaults. On 2026-08-17, BRD_Template.docx itself was also run through normalize_ordinary_text.py with THIS manifest to fix pre-existing internal typography drift (some runs were directly overridden to 11pt/10pt instead of the 12pt declared here) — validate_sbsi_docx.py now reports PASS with 0 warnings against the canonical file.",
 
   "typography_profile": {
     "font_name": "Times New Roman",
