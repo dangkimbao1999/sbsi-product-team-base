@@ -22,9 +22,23 @@ handed you a `RESOLVED` template. This is the "how" companion to
    assumes you've read that one for the mechanics of DOM edits,
    row/paragraph cloning, and the header-row off-by-one gotcha).
 4. For any NEW structural heading/clause you add (not already present in
-   the template), reuse the template's own paragraph styles and numbering
-   definitions — clone an existing heading/clause paragraph of the right
-   style/outline level rather than inventing new XML from scratch.
+   the template), **use the generation helpers in `_sbsi_docx_common.py`
+   — `clone_structural_paragraph()`, `clone_empty_structural_paragraph()`,
+   `build_new_chapter_paragraphs()`, `build_toc_field_paragraph()` — never
+   hand-roll `numPr`/`outlineLvl` XML or type the structural prefix
+   ("Chương I", "Điều 5.", a dot-leader TOC line) as literal text.** This
+   is not a style preference: a real reformatted document
+   (`QT_Nghien_cuu_va_Phat_trien_SPDV_so`, found 2026-08-17) got this wrong
+   by hand — new chapters used the wrong paragraph style, dropped the
+   direct `outlineLvl` override real chapters carry, and typed "Chương I"
+   as text — and it passed casual visual inspection while failing every
+   Word-native guarantee (Navigation Pane, TOC field, auto-renumbering).
+   The helpers exist specifically so that mistake requires effort to
+   repeat, not the default path. Pick your reference paragraph(s) from the
+   selected template's own manifest (e.g. quy-trinh's `chuong_structure`
+   and `dieu_numbering` fields document exactly which existing paragraphs
+   to clone and why) — never assume a style name implies an outline level
+   or active numbering without checking the manifest or the real XML.
 5. Repack onto the **same** `PizZip`/zip instance you loaded from the
    template copy, so headers/footers/styles/numbering/relationships/media
    pass through untouched — only `word/document.xml` (and, if you ran the
@@ -45,7 +59,13 @@ handed you a `RESOLVED` template. This is the "how" companion to
    format-only mode (see `FORMAT_CONVENTIONS.md` §7), content transfer must
    be wording-for-wording identical.
 5. Convert any fake headings/manual numbering found in the source into the
-   template's real styles/numbering as you transfer each block.
+   template's real styles/numbering as you transfer each block, using the
+   same generation helpers as §A.4. If the source has a manually-typed
+   "Mục lục" (dot-leader lines, no real field), replace it with
+   `build_toc_field_paragraph()` using the selected template's own
+   `toc_field_switches` manifest note — never keep the typed version even
+   if it currently displays correct page numbers, since it will silently
+   go stale on the next edit.
 6. Run `normalize_ordinary_text.py` on the result to catch any remaining
    direct-run font/size overrides.
 7. Run the validator, then render QA.
@@ -102,6 +122,22 @@ the user the document is ready — see `references/QA_CHECKLIST.md`'s
 - **numId="0" is a real OOXML sentinel** meaning "remove inherited
   numbering for this paragraph", not "paragraph 0". Don't treat it as
   "no override was set."
+- **A style name does not guarantee its outline level** — a style's OWN
+  `<w:style>` block can carry a different (or no) `outlineLvl` than what
+  every real paragraph using that style actually shows, because the real
+  outline level often comes from a DIRECT per-paragraph `<w:outlineLvl>`
+  override layered on top. Verified example: the Quy trình template's
+  `Style2` has `outlineLvl=9` (OOXML's "Body Text", not a heading) at the
+  style level, but every real Điều paragraph overrides it to `1` directly.
+  Always clone a real sibling paragraph (via the helpers above) rather than
+  constructing `pStyle` + assumed `outlineLvl` from scratch.
+- **A "Chương"-level heading is commonly TWO paragraphs**, not one: an
+  empty paragraph carrying the style's own active numbering (renders
+  "Chương I" via the numbering definition, no typed text, no paragraph-level
+  numId override) immediately followed by a title paragraph with numId
+  explicitly set to `0` (so it doesn't also render a number). Use
+  `build_new_chapter_paragraphs()` for this pair — inserting only one of
+  the two, or merging them into one paragraph, breaks the pattern.
 - **LibreOffice vs Word rendering differences**: LibreOffice does not
   always honor a paragraph-level `numId="0"` override identically to Word
   (a known interop gap). Treat `render_qa.py`'s output as a strong proxy,

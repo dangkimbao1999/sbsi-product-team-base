@@ -15,6 +15,7 @@ source of truth; edit it, not the literals here, when the SBSI-wide
 contract itself changes.
 """
 from __future__ import annotations
+import copy
 import json
 import re
 from pathlib import Path
@@ -222,12 +223,36 @@ def appendix_pattern(manifest: dict):
     return re.compile(pat, re.IGNORECASE)
 
 
-def in_appendix_zone(idx: int, body_paragraphs, appendix_re) -> bool:
-    """True once any preceding paragraph's text matched the appendix marker."""
-    for j in range(idx + 1):
-        if appendix_re.match(text_of(body_paragraphs[j]).strip()):
-            return True
-    return False
+DEFAULT_CHAPTER_BOUNDARY_PATTERN = _CONTRACT["structural_numbering"]["appendix_exception"]["zone_bounded_by_chapter_boundary_pattern"]
+
+
+def chapter_boundary_pattern(manifest: dict):
+    pat = manifest.get("chapter_boundary_pattern", DEFAULT_CHAPTER_BOUNDARY_PATTERN)
+    return re.compile(pat, re.IGNORECASE)
+
+
+def appendix_zone_mask(body_paragraphs, appendix_re, chapter_boundary_re) -> list[bool]:
+    """Per-paragraph "is this inside a tolerated appendix zone" flags.
+
+    NOT open-ended once triggered: the zone runs from an appendix-marker
+    paragraph until the next paragraph matching chapter_boundary_re (a new
+    Chương/Phần), or end of document — whichever comes first. A single
+    forward pass, computed once per validation run (replaces the old
+    per-paragraph O(n) rescan in in_appendix_zone, which was also
+    unboundedly sticky: see format_contract.json's appendix_exception.zone_note
+    for why an unbounded zone silently hides real numbering violations in
+    every chapter that follows a mid-document appendix cross-reference).
+    """
+    mask = []
+    in_zone = False
+    for p in body_paragraphs:
+        t = text_of(p).strip()
+        if in_zone and chapter_boundary_re.match(t):
+            in_zone = False
+        if appendix_re.match(t):
+            in_zone = True
+        mask.append(in_zone)
+    return mask
 
 
 # Half-points, added on TOP of the selected template's own resolved ordinary
@@ -289,3 +314,136 @@ def numbering_id(p):
         return None
     # numId "0" is the explicit "no numbering" sentinel in OOXML.
     return None if v[0] == "0" else v[0]
+
+
+# ---------------------------------------------------------------------------
+# Generation helpers — building NEW structural content the correct way.
+#
+# These exist because of a real, observed failure (2026-08-17,
+# QT_Nghien_cuu_va_Phat_trien_SPDV_so_(PC1)_reformatted.docx): new chapter
+# headings were built as a single hand-rolled paragraph with the wrong
+# style, no direct outlineLvl override, and "Chương I" typed as literal
+# text — passing visual inspection but failing every Word-native-features
+# guarantee (Navigation Pane, TOC field, auto-renumbering on insert/delete).
+# validate_sbsi_docx.py catches this AFTER the fact; these helpers exist so
+# there's a correct, low-effort path that never produces it in the first
+# place. Always prefer these over hand-rolling numPr/outlineLvl XML.
+# ---------------------------------------------------------------------------
+
+
+def clone_structural_paragraph(ref_para, new_text: str):
+    """Deep-clone a reference structural paragraph's formatting (pStyle,
+    numPr, direct outlineLvl, run formatting), replacing only its text.
+
+    This is the correct way to add a new Chương/Điều/Khoản/Điểm paragraph:
+    find an EXISTING paragraph in the document that already has the real
+    Word numbering/outline-level setup you want (see a template's manifest
+    — e.g. quy-trinh/template_manifest.json's `chuong_structure` and
+    `dieu_numbering` — for which paragraph to use as reference for that
+    template), then call this instead of constructing pPr/numPr from
+    scratch or, worse, typing the structural prefix as literal text.
+
+    Keeps ref_para's numPr EXACTLY as-is, including the two meaningful
+    "no explicit numId" states: a paragraph with no numId at all (inherits
+    active numbering from its style — used by e.g. this template's Chương
+    number-paragraph) and a paragraph with numId="0" (explicit "no
+    numbering here" sentinel — used by e.g. the Chương title-paragraph
+    immediately after it). Only the first run's text is replaced; any
+    additional runs are dropped, since a structural heading/clause is
+    expected to be a single run of plain text.
+
+    Raises ValueError if ref_para has no runs — for a reference paragraph
+    that is itself meant to stay textless (e.g. a Chương number-only
+    paragraph), use clone_empty_structural_paragraph instead; there is
+    nothing to replace new_text into.
+    """
+    new_p = copy.deepcopy(ref_para)
+    runs = new_p.xpath("./w:r", namespaces=NS)
+    if not runs:
+        raise ValueError(
+            "clone_structural_paragraph: reference paragraph has no runs to "
+            "clone text-run formatting from — use "
+            "clone_empty_structural_paragraph for a textless reference "
+            "(e.g. a Chương number-only paragraph)."
+        )
+    first_run = runs[0]
+    for extra in runs[1:]:
+        new_p.remove(extra)
+    for t in first_run.xpath("./w:t", namespaces=NS):
+        first_run.remove(t)
+    new_t = etree.SubElement(first_run, qn("t"))
+    new_t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    new_t.text = new_text
+    return new_p
+
+
+def clone_empty_structural_paragraph(ref_para):
+    """Deep-clone a reference paragraph that carries no text of its own.
+
+    Used for e.g. the empty "number-only" paragraph half of the Chương
+    two-paragraph pattern (see a template's manifest `chuong_structure`,
+    e.g. quy-trinh's), whose sole job is to let its style-inherited active
+    numbering render (e.g. "Chương I") — nothing about it needs to change
+    per new chapter, so this is a plain deep copy rather than a text swap.
+    """
+    return copy.deepcopy(ref_para)
+
+
+def build_new_chapter_paragraphs(number_para_ref, title_para_ref, title_text: str):
+    """Build the (number_paragraph, title_paragraph) pair for a new Chương.
+
+    number_para_ref / title_para_ref must be the two sibling paragraphs of
+    an EXISTING chapter in the same document (see a template's manifest's
+    `chuong_structure.verified_example` for which indices/paragraphs those
+    are for a given template). Insert the returned pair adjacently, in
+    order, at the desired location — never insert only one of them.
+    """
+    number_p = clone_empty_structural_paragraph(number_para_ref)
+    title_p = clone_structural_paragraph(title_para_ref, title_text)
+    return number_p, title_p
+
+
+def build_toc_field_paragraph(
+    switches: str = '\\o "1-3" \\h \\z \\u',
+    placeholder_text: str = "Nhấn Ctrl+A rồi F9 trong Word để cập nhật Mục lục.",
+):
+    """Build a real Word TOC field paragraph — fldChar begin -> instrText
+    'TOC <switches>' -> fldChar separate -> cached placeholder run ->
+    fldChar end. This is the correct replacement for a manually typed
+    dot-leader "Mục lục" block (see FORMAT_CONVENTIONS.md §4) — the
+    resulting paragraph responds to Ctrl+A -> F9 in Word like any other
+    native TOC.
+
+    `switches` should come from the SELECTED template's own manifest
+    `toc_field_switches` note when reformatting a document that already had
+    a real TOC (reuse the same switches the template's own TOC used —
+    don't invent different ones). The returned paragraph has no pStyle set
+    — apply the template's own TOC-heading-adjacent paragraph style
+    (commonly "TOC1"/"TOC2"/...) by cloning a real TOC-entry paragraph's
+    pPr the same way clone_structural_paragraph does, if the template's TOC
+    entries need one.
+
+    Caller is responsible for also setting word/settings.xml's
+    <w:updateFields w:val="true"/> so Word offers to refresh on open (see
+    normalize_ordinary_text.py, which already does this) — this function
+    only builds the field paragraph itself.
+    """
+    p = etree.Element(qn("p"))
+    r1 = etree.SubElement(p, qn("r"))
+    fld1 = etree.SubElement(r1, qn("fldChar"))
+    fld1.set(qn("fldCharType"), "begin")
+    r2 = etree.SubElement(p, qn("r"))
+    instr = etree.SubElement(r2, qn("instrText"))
+    instr.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    instr.text = f" TOC {switches} "
+    r3 = etree.SubElement(p, qn("r"))
+    fld3 = etree.SubElement(r3, qn("fldChar"))
+    fld3.set(qn("fldCharType"), "separate")
+    r4 = etree.SubElement(p, qn("r"))
+    t4 = etree.SubElement(r4, qn("t"))
+    t4.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    t4.text = placeholder_text
+    r5 = etree.SubElement(p, qn("r"))
+    fld5 = etree.SubElement(r5, qn("fldChar"))
+    fld5.set(qn("fldCharType"), "end")
+    return p

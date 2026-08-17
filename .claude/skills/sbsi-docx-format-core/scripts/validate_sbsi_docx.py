@@ -51,7 +51,8 @@ from _sbsi_docx_common import (  # noqa: E402
     cover_page_boundary_index,
     heading_patterns,
     appendix_pattern,
-    in_appendix_zone,
+    chapter_boundary_pattern,
+    appendix_zone_mask,
     numbering_id,
     resolved_typography,
     requires_real_headings,
@@ -209,6 +210,8 @@ def main() -> int:
         cover_end = cover_page_boundary_index(body_ps, manifest)
         h_pats = heading_patterns(manifest)
         app_re = appendix_pattern(manifest)
+        chap_re = chapter_boundary_pattern(manifest)
+        app_zone_mask = appendix_zone_mask(body_ps, app_re, chap_re)
 
         # --- TOC ---
         toc_instr = " ".join(doc_root.xpath(".//w:instrText/text()", namespaces=NS)).upper()
@@ -257,9 +260,8 @@ def main() -> int:
                     break
 
             # --- Numbering scan (deferred sequence detection below) ---
-            is_appendix = in_appendix_zone(idx, body_ps, app_re)
             numbering_scan.append((t, numbering_id(p)))
-            numbering_scan_is_appendix.append(is_appendix)
+            numbering_scan_is_appendix.append(app_zone_mask[idx])
 
         if not any_heading_used and need_real_headings:
             msg = "[Headings] No real heading/outline-level paragraphs found in document body"
