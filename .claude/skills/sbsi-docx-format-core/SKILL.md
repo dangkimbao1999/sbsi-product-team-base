@@ -52,7 +52,10 @@ failure this two-skill split exists to prevent.
 Read `references/FORMAT_CONVENTIONS.md` for the full rule set (typography,
 numbering, headings, TOC, layout preservation, tables, format-only mode)
 before generating or reformatting anything — it's the source of truth, this
-file only summarizes.
+file only summarizes. `references/format_contract.json` is the
+machine-readable mirror of the same rules — it's what `_sbsi_docx_common.py`
+actually loads its constants from at runtime, so it and
+`FORMAT_CONVENTIONS.md` must be edited together; never let them drift.
 
 Read `references/IMPLEMENTATION_GUIDE.md` for the actual workflow (copy →
 edit → normalize → validate → render QA) and the exact script invocations.

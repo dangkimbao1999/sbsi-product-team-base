@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """Shared OOXML helpers for validate_sbsi_docx.py and normalize_ordinary_text.py.
 
-IMPORTANT — genericity contract (see references/FORMAT_CONVENTIONS.md):
-This module must never hardcode business content from any one SBSI document
-(specific article names, specific chapter numbers, specific company/org
-text such as a signature-block name). Every document-specific tuning knob
-belongs in a per-template "manifest" JSON (see load_manifest()) supplied by
-whoever registers that template in sbsi-template-router, not in this file.
-Only *structural* Word conventions (outline levels, real numPr numbering,
-page breaks, TOC fields, style names) may be hardcoded here, because those
-are OOXML-level concepts, not one document's business content.
+IMPORTANT — genericity contract (see references/FORMAT_CONVENTIONS.md and
+references/format_contract.json, the machine-readable mirror of the same
+rules): this module must never hardcode business content from any one SBSI
+document (specific article names, specific chapter numbers, specific
+company/org text such as a signature-block name). Every document-specific
+tuning knob belongs in a per-template "manifest" JSON (see load_manifest())
+supplied by whoever registers that template in sbsi-template-router, not in
+this file. The document-type-AGNOSTIC contract values (target font/size,
+default heading/appendix patterns, display-size threshold) are loaded from
+references/format_contract.json at import time — that JSON is the single
+source of truth; edit it, not the literals here, when the SBSI-wide
+contract itself changes.
 """
 from __future__ import annotations
 import json
@@ -20,9 +23,30 @@ from lxml import etree
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 NS = {"w": W}
 
+# Single source of truth for the document-type-agnostic contract values
+# below: references/format_contract.json (sibling to this skill's
+# scripts/ dir). The JSON is authoritative for the literal values; this
+# module only turns them into the shapes the scripts need (compiled-ready
+# regex source strings, etc). Missing/unreadable contract is a hard error
+# (no-fallbacks) — these values are load-bearing for every check.
+_CONTRACT_PATH = Path(__file__).parent.parent / "references" / "format_contract.json"
+
+
+def _load_contract() -> dict:
+    if not _CONTRACT_PATH.exists():
+        raise FileNotFoundError(
+            f"Required format contract not found: {_CONTRACT_PATH}"
+        )
+    return json.loads(_CONTRACT_PATH.read_text(encoding="utf-8"))
+
+
+_CONTRACT = _load_contract()
+
 # Half-points. 13pt ordinary text == sz/szCs val "26".
-TARGET_FONT = "times new roman"
-TARGET_SZ = "26"
+TARGET_FONT_DISPLAY = _CONTRACT["ordinary_text_typography"]["font_name"]
+TARGET_FONT = TARGET_FONT_DISPLAY.lower()
+TARGET_SZ = str(_CONTRACT["ordinary_text_typography"]["size_half_points"])
+TARGET_FONT_SLOTS = _CONTRACT["ordinary_text_typography"]["font_slots"]
 
 # Generic, template-independent default patterns for text that LOOKS like a
 # structural Vietnamese legal-drafting heading (Chương/Điều/Mục/Phần). These
@@ -30,12 +54,7 @@ TARGET_SZ = "26"
 # every SBSI governance document type can plausibly use this vocabulary.
 # A template can extend/replace this list via its manifest's
 # "structural_heading_patterns".
-DEFAULT_HEADING_PATTERNS = [
-    r"^Chương\s+[IVXLCDM]+\b",  # Chương I, II, ...
-    r"^Điều\s+\d+[\.\)]?\s*\S",  # Điều 1. ...
-    r"^Mục\s+\d+[\.\)]?\s*\S",  # Mục 1. ...
-    r"^Phần\s+[IVXLCDM\d]+\b",  # Phần I / Phần 1
-]
+DEFAULT_HEADING_PATTERNS = _CONTRACT["structural_headings"]["default_patterns"]
 
 # Generic default marker for "appendix territory": a section where manual
 # reference-list numbering (e.g. a bibliography of legal citations) is a
@@ -43,7 +62,7 @@ DEFAULT_HEADING_PATTERNS = [
 # Vietnamese structural word for "Appendix" (like "Appendix" in English) —
 # used across every SBSI document type by definition, not specific business
 # content from one document. A template manifest can override this.
-DEFAULT_APPENDIX_PATTERN = r"^(Phụ\s*lục|PHỤ\s*LỤC|Appendix)\b"
+DEFAULT_APPENDIX_PATTERN = _CONTRACT["structural_numbering"]["appendix_exception"]["default_marker_pattern"]
 
 
 def qn(local: str) -> str:
@@ -187,7 +206,7 @@ def in_appendix_zone(idx: int, body_paragraphs, appendix_re) -> bool:
 # text match, so it generalizes across templates. A genuine ordinary-text
 # sizing mistake (e.g. 12pt body text) stays well under this threshold and
 # is still caught.
-DISPLAY_SIZE_THRESHOLD_HALF_POINTS = 28
+DISPLAY_SIZE_THRESHOLD_HALF_POINTS = _CONTRACT["ordinary_text_typography"]["display_size_threshold_half_points"]
 
 
 def _direct_sizes(rpr):

@@ -1,0 +1,98 @@
+{
+  "contract_version": "1.0",
+  "scope": "SBSI governance-style DOCX documents (Quy định, Quy trình, Quy chế, Hướng dẫn and equivalents), applied by sbsi-docx-format-core AFTER sbsi-template-router has resolved a document-type-specific template. This is the machine-readable mirror of FORMAT_CONVENTIONS.md — prose is authoritative for rationale, this file is authoritative for the literal values the scripts consume.",
+
+  "rule_precedence": [
+    "user_explicit_instruction_for_the_current_task",
+    "sbsi_typography_override_defined_in_this_contract",
+    "selected_template_resolved_by_sbsi_template_router",
+    "source_document_being_reformatted_if_any"
+  ],
+
+  "ordinary_text_typography": {
+    "font_name": "Times New Roman",
+    "font_slots": ["ascii", "hAnsi", "eastAsia", "cs"],
+    "size_half_points": 26,
+    "size_pt": 13,
+    "normalized_styles": ["Normal", "Body Text", "List Paragraph"],
+    "exemptions": [
+      "cover_page_front_matter_before_first_page_break",
+      "real_heading_paragraphs_with_resolved_outline_level_0_to_8",
+      "toc_heading_and_toc_entry_styles",
+      "header_footer_parts_and_page_number_fields",
+      "template_declared_special_display_elements_via_manifest",
+      "direct_font_size_override_above_display_size_threshold"
+    ],
+    "display_size_threshold_half_points": 28,
+    "_display_size_threshold_note": "A direct (non-style-inherited) run/paragraph-mark size override above this magnitude is treated as deliberate display/title typography, not an ordinary-text sizing mistake."
+  },
+
+  "structural_numbering": {
+    "rule": "Structural clauses/sub-points (Khoản, Điểm, and equivalents) must carry real w:numPr bound to word/numbering.xml. Never type '1.', 'a)', 'Điều 1.' etc. as literal paragraph text.",
+    "manual_numbering_detection": {
+      "decimal_pattern": "^(\\d+)[\\.\\)]\\s+\\S",
+      "letter_pattern": "^([a-zđA-ZĐ])\\)\\s+\\S",
+      "consecutive_run_threshold": 2,
+      "severity_when_run_detected": "ERROR",
+      "severity_when_isolated_match": "WARNING"
+    },
+    "appendix_exception": {
+      "default_marker_pattern": "^(Phụ\\s*lục|PHỤ\\s*LỤC|Appendix)\\b",
+      "severity": "WARNING",
+      "manifest_override_field": "appendix_heading_pattern",
+      "rationale": "A manually-numbered reference/bibliography list inside an appendix is a tolerated SBSI drafting convention, not a structural Khoản/Điểm clause."
+    },
+    "restart_behavior": "Khoản and Điểm numbering restart per the selected template's own numbering.xml abstractNum/num definitions and outline scoping — never re-implemented ad hoc."
+  },
+
+  "structural_headings": {
+    "rule": "Chapter/Article/section titles must be real Word paragraph styles carrying a resolved outline level (direct w:outlineLvl, or inherited via the style's basedOn chain). Never bold+centered Normal text imitating heading vocabulary.",
+    "default_patterns": [
+      "^Chương\\s+[IVXLCDM]+\\b",
+      "^Điều\\s+\\d+[\\.\\)]?\\s*\\S",
+      "^Mục\\s+\\d+[\\.\\)]?\\s*\\S",
+      "^Phần\\s+[IVXLCDM\\d]+\\b"
+    ],
+    "fake_heading_detection": "text matches a heading pattern AND has no resolved outline level -> ERROR",
+    "manifest_override_field": "structural_heading_patterns",
+    "outline_level_source_of_truth": "Discovered per-template from styles.xml, recorded informationally in that template's template_manifest.json (known_style_hierarchy) — never assumed to be a fixed number across templates."
+  },
+
+  "toc": {
+    "rule": "A 'Mục lục' (or Table of Contents) heading requires a real Word TOC field: an instrText run containing 'TOC' between w:fldChar begin/separate/end markers. Never typed dot-leader text.",
+    "settings_update_fields_should_be_true": true,
+    "must_survive": "Ctrl+A -> F9 in Microsoft Word"
+  },
+
+  "layout_preservation": [
+    "page_size_and_orientation",
+    "section_breaks",
+    "margins",
+    "header_footer_content_and_distances",
+    "logo_and_company_identity",
+    "footer_disclaimer",
+    "page_number_fields",
+    "cover_geometry",
+    "document_information_table_geometry",
+    "table_border_and_fill_conventions",
+    "appendix_section_orientation",
+    "type_specific_title_blocks"
+  ],
+
+  "format_only_mode": {
+    "trigger_phrases": ["chỉ sửa format", "không sửa nội dung", "only fix the format"],
+    "allowed_transformation": "Replacing a manually-typed structural prefix with the equivalent real Word numbering/heading style; visible wording must stay semantically identical.",
+    "forbidden": [
+      "rewriting", "shortening", "correction", "terminology changes",
+      "restructuring", "reordering", "changing figures/dates/names/references/tables/appendices"
+    ]
+  },
+
+  "fail_closed_conditions": [
+    "sbsi-template-router did not return status RESOLVED",
+    "structural/typography validator reported any ERROR",
+    "render QA has not been completed and visually inspected for every page",
+    "manual/typed structural numbering remains in scope (outside the tolerated appendix exception)",
+    "ordinary-text typography does not resolve to Times New Roman 13pt"
+  ]
+}

@@ -40,6 +40,9 @@ from _sbsi_docx_common import (  # noqa: E402
     is_ordinary_text_exempt,
     load_manifest,
     cover_page_boundary_index,
+    TARGET_FONT_DISPLAY,
+    TARGET_FONT_SLOTS,
+    TARGET_SZ,
 )
 
 
@@ -48,8 +51,8 @@ def set_rpr_tnr13(rpr):
     rf = fonts[0] if fonts else etree.SubElement(rpr, qn("rFonts"))
     for extra in fonts[1:]:
         rpr.remove(extra)
-    for a in ["ascii", "hAnsi", "eastAsia", "cs"]:
-        rf.set(qn(a), "Times New Roman")
+    for a in TARGET_FONT_SLOTS:
+        rf.set(qn(a), TARGET_FONT_DISPLAY)
     for a in ["asciiTheme", "hAnsiTheme", "eastAsiaTheme", "cstheme"]:
         rf.attrib.pop(qn(a), None)
     for tag in ["sz", "szCs"]:
@@ -57,7 +60,7 @@ def set_rpr_tnr13(rpr):
         node = nodes[0] if nodes else etree.SubElement(rpr, qn(tag))
         for extra in nodes[1:]:
             rpr.remove(extra)
-        node.set(qn("val"), "26")
+        node.set(qn("val"), TARGET_SZ)
 
 
 def set_run(r):
