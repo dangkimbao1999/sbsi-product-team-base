@@ -8,10 +8,20 @@ one org's signature-block text) — see the genericity contract at the top of
 template's own `template_manifest.json` (see `sbsi-template-router`'s
 "Template registration rules"), not in this file or the scripts.
 
-## 1. Ordinary text typography — exact, blocking
+## 1. Ordinary text typography — exact, blocking, per-template
 
 All **ordinary text** MUST be Times New Roman, exactly 13pt (`w:sz`/`w:szCs`
-= `26` half-points).
+= `26` half-points) — this is `format_contract.json`'s **global default**,
+used by every governance document type (Quy trình, Quy định, Quy chế,
+Hướng dẫn). It is not a hardcoded constant the engine can't deviate from:
+one shared engine (`_sbsi_docx_common.py` / `validate_sbsi_docx.py` /
+`normalize_ordinary_text.py`) runs against every SBSI document type, and a
+template with its own long-standing, verified typography convention
+declares an explicit override in its own `template_manifest.json`'s
+`typography_profile` field (e.g. BRD's TNR 12pt, owned by PTSP — see
+`sbsi-template-router/templates/brd/template_manifest.json`). Never guess
+or silently apply a different value than what the manifest declares —
+missing manifest means the global 13pt default applies.
 
 Ordinary text includes: body/legal prose, preamble prose, numbered-clause
 content, lettered sub-point content, explanatory paragraphs, and ordinary
@@ -28,6 +38,13 @@ inherit Aptos/Calibri/Arial from a theme font or an un-set slot.
 - TOC heading and TOC entry styles.
 - Header/footer branding and page-number fields (separate XML parts —
   never touched by the format-core scripts at all).
+- A direct font-size override more than `display_size_margin_above_ordinary_half_points`
+  (default 2 half-points = 1pt) above the *selected template's own*
+  resolved ordinary size — relative to that template's typography profile,
+  not a fixed absolute pt value, so it correctly exempts e.g. BRD's bold
+  14pt pseudo-section-titles (12pt baseline + margin) the same way it
+  exempts a governance template's oversized promulgation-page title (13pt
+  baseline + margin).
 - A template-declared special display element (compact appendix matrix,
   landscape form) — declared via that template's manifest, not guessed.
 
@@ -84,7 +101,16 @@ appendix marker pattern via its manifest's `appendix_heading_pattern`.
 
 Never build "Chương I", "Điều 1." etc. by bolding/centering a `Normal`
 paragraph. They must be real Word paragraph styles with real outline
-levels, so the Navigation Pane and TOC field work.
+levels, so the Navigation Pane and TOC field work. This is the default for
+every SBSI document type; a template's manifest can set
+`"requires_real_headings": false` only when its own top-level sections are
+verifiably NOT built on real outline-level styles as a long-standing,
+deliberate template convention (e.g. BRD's 13 bold-`Normal` section
+titles) — this suppresses the "no real heading found" gate for that
+template specifically, it does not disable the fake-heading-vocabulary
+check below (which stays on regardless, since typing literal
+"Chương"/"Điều" text without real numbering is never acceptable for any
+type that uses that vocabulary).
 
 The validator's fake-heading check looks for text matching known
 Vietnamese legal-drafting heading vocabulary (`Chương I`, `Điều 1.`, `Mục
@@ -124,9 +150,11 @@ visually imitating it — see the "golden-template principle" in
 ## 6. Tables
 
 Ordinary tables: reuse the template's borders/widths/cell margins/
-alignment/repeat-header/shading; ordinary cell text is TNR 13pt like any
-other ordinary text; never shrink text to force-fit content — fix column
-widths/orientation/section layout instead.
+alignment/repeat-header/shading; ordinary cell text follows the selected
+template's typography profile (§1 — TNR 13pt by default, or that
+template's own manifest override) like any other ordinary text; never
+shrink text to force-fit content — fix column widths/orientation/section
+layout instead.
 
 Special compact matrices/forms: preserve the template's own typography
 there; don't blindly normalize a template-intentional compact style to

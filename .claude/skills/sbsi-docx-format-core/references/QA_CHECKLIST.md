@@ -17,12 +17,17 @@
 
 ## Typography
 
-- [ ] Ordinary text is Times New Roman, exactly 13pt.
+- [ ] Ordinary text matches the selected template's typography profile —
+      Times New Roman 13pt by default, or that template's own manifest
+      override (e.g. BRD's TNR 12pt) if it declares one. Always pass
+      `--manifest` when the resolved template has one; a missing manifest
+      falls back to the 13pt default, which is wrong for a template that
+      needs its own override.
 - [ ] `Normal` / `Body Text` / `List Paragraph` styles and `docDefaults`
-      resolve to TNR 13pt.
+      resolve to that same target font/size.
 - [ ] No Calibri/Aptos/Arial or wrong-size leakage in ordinary-text scope.
 - [ ] Cover-page/heading/TOC display typography is untouched (not forced
-      to 13pt).
+      to the ordinary-text target).
 
 ## Visual (run `render_qa.py`, then actually look at every page)
 

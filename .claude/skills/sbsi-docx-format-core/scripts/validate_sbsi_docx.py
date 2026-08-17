@@ -6,7 +6,10 @@ Usage:
         [--manifest <template_manifest.json>]
 
 Checks (see references/FORMAT_CONVENTIONS.md for the full rule text):
-  1. Fonts      — ordinary text is Times New Roman exactly 13pt.
+  1. Fonts      — ordinary text matches the selected template's typography
+                  profile (format_contract.json's global default is Times
+                  New Roman 13pt; a template manifest may declare its own
+                  verified override, e.g. BRD's long-standing 12pt).
   2. Headings   — real heading/outline styles exist and are used; no fake
                   (bold-Normal) headings mimicking structural vocabulary.
   3. Numbering  — structural list numbering (Khoản/Điểm-style) uses real
@@ -50,8 +53,8 @@ from _sbsi_docx_common import (  # noqa: E402
     appendix_pattern,
     in_appendix_zone,
     numbering_id,
-    TARGET_FONT,
-    TARGET_SZ,
+    resolved_typography,
+    requires_real_headings,
 )
 
 
@@ -91,7 +94,7 @@ def effective_style_rpr(styles_root, smap, sid):
     return fonts, sizes
 
 
-def run_is_tnr13(r, p, styles_root, smap):
+def run_is_tnr13(r, p, styles_root, smap, target_font, target_sz):
     rpr = r.find(qn("rPr"))
     fonts = attr_vals(rpr, "rFonts", ["ascii", "hAnsi", "eastAsia", "cs"])
     sizes = attr_vals(rpr, "sz", ["val"]) + attr_vals(rpr, "szCs", ["val"])
@@ -101,8 +104,8 @@ def run_is_tnr13(r, p, styles_root, smap):
         sizes = sizes or ss
     if not fonts or not sizes:
         return False
-    fonts_ok = all(f.strip().lower() == TARGET_FONT for f in fonts)
-    sizes_ok = all(str(s) == TARGET_SZ for s in sizes)
+    fonts_ok = all(f.strip().lower() == target_font for f in fonts)
+    sizes_ok = all(str(s) == target_sz for s in sizes)
     return fonts_ok and sizes_ok
 
 
@@ -185,6 +188,8 @@ def main() -> int:
     warnings: list[str] = []
 
     manifest = load_manifest(args.manifest)
+    target_font, target_font_display, target_sz = resolved_typography(manifest)
+    need_real_headings = requires_real_headings(manifest)
 
     with zipfile.ZipFile(args.doc) as z:
         names = z.namelist()
@@ -242,13 +247,13 @@ def main() -> int:
                         errors.append(f"[Headings] Manual/non-structural heading text (no outline level): {t[:120]}")
                         break
 
-            if outline is not None or toc_style or is_ordinary_text_exempt(p, smap):
+            if outline is not None or toc_style or is_ordinary_text_exempt(p, smap, target_sz):
                 continue  # headings/TOC/display-typography lines: skip font+numbering checks
 
             # --- Fonts ---
             for r in p.xpath("./w:r", namespaces=NS):
-                if text_of(r).strip() and not run_is_tnr13(r, p, styles_root, smap):
-                    errors.append(f"[Fonts] Ordinary text is not Times New Roman 13pt: {t[:120]}")
+                if text_of(r).strip() and not run_is_tnr13(r, p, styles_root, smap, target_font, target_sz):
+                    errors.append(f"[Fonts] Ordinary text is not {target_font_display} {int(target_sz) // 2}pt: {t[:120]}")
                     break
 
             # --- Numbering scan (deferred sequence detection below) ---
@@ -256,7 +261,7 @@ def main() -> int:
             numbering_scan.append((t, numbering_id(p)))
             numbering_scan_is_appendix.append(is_appendix)
 
-        if not any_heading_used:
+        if not any_heading_used and need_real_headings:
             msg = "[Headings] No real heading/outline-level paragraphs found in document body"
             if args.template:
                 errors.append(msg + " (selected template defines heading structure — this is blocking)")

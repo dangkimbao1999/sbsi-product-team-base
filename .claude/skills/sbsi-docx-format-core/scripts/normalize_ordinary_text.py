@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Normalize ordinary DOCX text to Times New Roman 13pt, safely.
+"""Normalize ordinary DOCX text to the selected template's typography, safely.
+
+Target font/size come from format_contract.json's global default (Times New
+Roman 13pt) unless a --manifest overrides it via "typography_profile" (e.g.
+BRD's own verified 12pt convention) — see _sbsi_docx_common.resolved_typography.
 
 Usage:
     python3 normalize_ordinary_text.py <input.docx> <output.docx> [--manifest <template_manifest.json>]
@@ -40,19 +44,18 @@ from _sbsi_docx_common import (  # noqa: E402
     is_ordinary_text_exempt,
     load_manifest,
     cover_page_boundary_index,
-    TARGET_FONT_DISPLAY,
+    resolved_typography,
     TARGET_FONT_SLOTS,
-    TARGET_SZ,
 )
 
 
-def set_rpr_tnr13(rpr):
+def set_rpr_target(rpr, font_display: str, sz: str):
     fonts = rpr.findall(qn("rFonts"))
     rf = fonts[0] if fonts else etree.SubElement(rpr, qn("rFonts"))
     for extra in fonts[1:]:
         rpr.remove(extra)
     for a in TARGET_FONT_SLOTS:
-        rf.set(qn(a), TARGET_FONT_DISPLAY)
+        rf.set(qn(a), font_display)
     for a in ["asciiTheme", "hAnsiTheme", "eastAsiaTheme", "cstheme"]:
         rf.attrib.pop(qn(a), None)
     for tag in ["sz", "szCs"]:
@@ -60,18 +63,20 @@ def set_rpr_tnr13(rpr):
         node = nodes[0] if nodes else etree.SubElement(rpr, qn(tag))
         for extra in nodes[1:]:
             rpr.remove(extra)
-        node.set(qn("val"), TARGET_SZ)
+        node.set(qn("val"), sz)
 
 
-def set_run(r):
+def set_run(r, font_display: str, sz: str):
     rpr = r.find(qn("rPr"))
     if rpr is None:
         rpr = etree.Element(qn("rPr"))
         r.insert(0, rpr)
-    set_rpr_tnr13(rpr)
+    set_rpr_target(rpr, font_display, sz)
 
 
 def normalize(inp: Path, out: Path, manifest: dict):
+    _, font_display, sz = resolved_typography(manifest)
+
     with zipfile.ZipFile(inp, "r") as zin:
         files = {n: zin.read(n) for n in zin.namelist()}
 
@@ -80,14 +85,14 @@ def normalize(inp: Path, out: Path, manifest: dict):
 
     rprdef = styles_root.xpath("./w:docDefaults/w:rPrDefault/w:rPr", namespaces=NS)
     if rprdef:
-        set_rpr_tnr13(rprdef[0])
+        set_rpr_target(rprdef[0], font_display, sz)
     for sid in ["Normal", "BodyText", "ListParagraph"]:
         nodes = styles_root.xpath(f"./w:style[@w:styleId='{sid}']", namespaces=NS)
         if nodes:
             rpr = nodes[0].find(qn("rPr"))
             if rpr is None:
                 rpr = etree.SubElement(nodes[0], qn("rPr"))
-            set_rpr_tnr13(rpr)
+            set_rpr_target(rpr, font_display, sz)
     files["word/styles.xml"] = etree.tostring(styles_root, xml_declaration=True, encoding="UTF-8", standalone="yes")
 
     doc_root = etree.fromstring(files["word/document.xml"])
@@ -98,14 +103,14 @@ def normalize(inp: Path, out: Path, manifest: dict):
     for idx, p in enumerate(body_ps):
         if idx < cover_end:
             continue  # cover-page front matter — never touched
-        if is_ordinary_text_exempt(p, smap):
+        if is_ordinary_text_exempt(p, smap, sz):
             continue  # heading / TOC entry / deliberate display typography — preserve as-is
         ppr_rpr = p.xpath("./w:pPr/w:rPr", namespaces=NS)
         if ppr_rpr:
-            set_rpr_tnr13(ppr_rpr[0])
+            set_rpr_target(ppr_rpr[0], font_display, sz)
         for r in p.xpath("./w:r", namespaces=NS):
             if text_of(r):
-                set_run(r)
+                set_run(r, font_display, sz)
                 normalized_count += 1
 
     files["word/document.xml"] = etree.tostring(doc_root, xml_declaration=True, encoding="UTF-8", standalone="yes")
@@ -122,7 +127,7 @@ def normalize(inp: Path, out: Path, manifest: dict):
         for name, data in files.items():
             zout.writestr(name, data)
 
-    print(f"Normalized {normalized_count} ordinary run(s) to Times New Roman 13pt (cover-page/headings/TOC preserved): {out}")
+    print(f"Normalized {normalized_count} ordinary run(s) to {font_display} {int(sz) // 2}pt (cover-page/headings/TOC preserved): {out}")
 
 
 def main() -> int:

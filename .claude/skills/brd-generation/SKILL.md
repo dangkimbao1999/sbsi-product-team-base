@@ -1,6 +1,6 @@
 ---
 name: brd-generation
-description: Generate an SBSI Business Requirements Document (BRD) from the company's standard BRD template (assets/BRD_Template.docx), given a user's requirements. Use when asked to write, draft, or create a BRD, or to fill in the BRD template for a product/feature.
+description: Generate an SBSI Business Requirements Document (BRD) from the company's standard BRD template (sbsi-template-router/templates/brd/BRD_Template.docx), given a user's requirements. Use when asked to write, draft, or create a BRD, or to fill in the BRD template for a product/feature.
 ---
 
 # Generating a BRD from SBSI's Standard Template
@@ -11,48 +11,63 @@ read that skill first for the general docx mechanics (docxtemplater vs the
 template's structure so content gets placed correctly and nothing gets
 invented.
 
-The canonical template lives at `assets/BRD_Template.docx` (this skill's
-own folder) — a copy of SBSI Product Development's (PTSP) standard BRD,
-Vietnamese-language, owned by PTSP as input to CNTT's (IT/BA) SRS.
+The canonical template lives at
+`../sbsi-template-router/templates/brd/BRD_Template.docx` — a copy of SBSI
+Product Development's (PTSP) standard BRD, Vietnamese-language, owned by
+PTSP as input to CNTT's (IT/BA) SRS. It lives alongside every other SBSI
+document type's template under `sbsi-template-router/templates/` (not in
+this skill's own folder) so the whole template set has one predictable
+location as new document types get registered — see that skill's
+`template_registry.json` and "Adding a new template type" procedure.
 
 ## Relationship to sbsi-template-router / sbsi-docx-format-core
 
 BRD is registered as the `brd` document type in `sbsi-template-router`'s
-`template_registry.json`, pointing at this skill's own
-`assets/BRD_Template.docx` — so template *path* resolution for BRD goes
-through the same router as every other SBSI document type, rather than
-being a special case a caller has to know about separately. That
-registration does **not** change anything about how BRD content gets
-generated: this skill still owns BRD's own workflow end to end (the
-direct-XML-DOM-edit fill technique, the 13-section structure, and the
-OBJ/BR/RULE/UC/ACT/AC traceability ID scheme below) — `sbsi-template-router`
-never touches BRD content, it only hands back the template path.
+`template_registry.json`, pointing at
+`templates/brd/BRD_Template.docx` (+ `templates/brd/template_manifest.json`)
+— template *path* resolution for BRD goes through the same router as every
+other SBSI document type. This does **not** change who owns BRD's content
+workflow: this skill still owns BRD end to end (the direct-XML-DOM-edit
+fill technique, the 13-section structure, and the OBJ/BR/RULE/UC/ACT/AC
+traceability ID scheme below) — `sbsi-template-router` never touches BRD
+content, it only hands back the template path + manifest.
 
-**Known discrepancy, verified against the real template (not a validator
-bug):** running `sbsi-docx-format-core`'s validator against
-`assets/BRD_Template.docx` reports the ordinary-text font as Times New
-Roman **12pt** (`docDefaults`/`Normal` both resolve to `sz=24`), not the
-13pt `sbsi-docx-format-core` mandates for governance documents, and reports
-no real heading/outline-level paragraphs (BRD's 13 section titles are
-large/bold `Normal` text, not real Word heading styles). This is BRD's own
-long-standing template convention — this skill's step 4 already says to
-preserve the template's exact original branding pixel-for-pixel — not a
-new bug introduced here. **Do not** run BRD output through
-`normalize_ordinary_text.py` or treat a format-core validator FAIL as
-blocking for BRD; that would silently rewrite BRD's established 12pt
-convention to 13pt without anyone deciding that's wanted. If SBSI wants BRD
-brought onto the same 13pt/real-heading standard as governance documents,
-that's a template-owner (PTSP) decision to make explicitly, not something
-either skill should do on its own — flag it to the user rather than
-guessing. Chương/Điều heading-vocabulary and Khoản/Điểm numbering rules
-don't apply to BRD's plain numbered sections either way. Don't route BRD
-*content* generation through `sbsi-docx-format-core`'s workflow (copy
-template → apply Chương/Điều numbering → ...) — follow this skill's own
-workflow below instead.
+**Format enforcement uses the SAME shared `sbsi-docx-format-core` engine as
+every other SBSI document type — BRD is not skipped or special-cased in the
+scripts.** What differs is data, not code: BRD's own verified typography
+(Times New Roman **12pt** — `docDefaults`/`Normal` resolve to `sz=24`, not
+the 13pt governance-document default) and its lack of real Word
+heading/outline-level styles (BRD's 13 section titles are large/bold
+`Normal`-based text, a PTSP template design choice — this skill's step 4
+already says to preserve the template's exact original branding
+pixel-for-pixel) are declared explicitly in
+`templates/brd/template_manifest.json`'s `typography_profile` and
+`requires_real_headings: false` fields. **Always pass
+`--manifest ../sbsi-template-router/templates/brd/template_manifest.json`**
+when running `validate_sbsi_docx.py` or `normalize_ordinary_text.py`
+against BRD output — without it, both scripts fall back to the 13pt
+governance default and will (correctly, for a template that doesn't
+declare otherwise) report BRD as non-compliant. Chương/Điều
+heading-vocabulary and Khoản/Điểm numbering rules don't apply to BRD's
+plain numbered sections either way, and never did.
+
+**Separately, a real pre-existing typography inconsistency was found
+in `BRD_Template.docx` itself (2026-08-17), unrelated to the above:** even
+with the correct 12pt manifest applied, `validate_sbsi_docx.py` still
+reports ~31 blocking Font findings — many ordinary-body runs are directly
+overridden to 11pt (`sz=22`) or a bracketed `[BẮT BUỘC]`/`[KHUYẾN NGHỊ]` tag
+at 10pt (`sz=20`) instead of the style-declared 12pt, and a few sub-labels
+(e.g. "Thông tin chung") sit exactly at 13pt (`sz=26`). This is real drift
+inside the live template file (most likely from past copy/paste edits), not
+a validator false positive — do **not** silently "fix" it by further
+loosening the validator or by force-normalizing the template file without
+asking; it's a PTSP template-owner decision whether/how to clean it up.
+Flag it to the user if it comes up rather than treating BRD as fully
+format-core-clean today.
 
 ## Important: this template has no merge tags
 
-`assets/BRD_Template.docx` uses plain red-italic `‹fill-in›` placeholder
+`BRD_Template.docx` uses plain red-italic `‹fill-in›` placeholder
 text (e.g. `‹điền›`, `‹Tên sản phẩm / tính năng›`), meant for a human to
 type over in Word — **not** `docxtemplater`-style `{tags}`. Verified by
 extracting `word/document.xml` directly; don't assume otherwise.
@@ -201,24 +216,30 @@ reference it.
 3. Assign IDs sequentially per the coding scheme above as content is
    filled in, keeping cross-references (`Tham chiếu mục tiêu`, `Tham chiếu
    yêu cầu`, `Tham chiếu (BR/OBJ)`) consistent.
-4. Copy `assets/BRD_Template.docx` to a scratch working file first — never
-   open/edit the template path itself.
+4. Copy `../sbsi-template-router/templates/brd/BRD_Template.docx` to a
+   scratch working file first — never open/edit the template path itself.
 5. Generate via the chosen path — default is the direct XML DOM edit on
    the copy (option 1 above); see `office-file-generation` skill's
    "Word — filling an existing template without pre-tagging" section for
    the full technique (helper functions, guidance-paragraph deletion,
    row/block cloning, the header-row off-by-one gotcha, validation steps).
-6. Write output to a new file, never overwrite `assets/BRD_Template.docx`
-   or the scratch copy in place — e.g. `<product-code>-brd.docx` in the
-   location the user specifies.
-7. Validate before handing off: `unzip -t` for zip integrity, then dump
+6. Write output to a new file, never overwrite `BRD_Template.docx` or the
+   scratch copy in place — e.g. `<product-code>-brd.docx` in the location
+   the user specifies.
+7. Run `sbsi-docx-format-core`'s validator with BRD's own manifest before
+   handing off — `python3 validate_sbsi_docx.py --doc <output.docx>
+   --template ../sbsi-template-router/templates/brd/BRD_Template.docx
+   --manifest ../sbsi-template-router/templates/brd/template_manifest.json`
+   — any new `ERROR:` beyond the known pre-existing typography drift noted
+   above is your content edit's own regression, fix it before delivering.
+8. Also validate before handing off: `unzip -t` for zip integrity, then dump
    the **full** document text with `mammoth` and read it end to end,
    checking every table's rows land under the right headers/labels (the
    header-row skip is easy to get wrong and silently shifts a whole
    table by one row). Grep for any remaining `‹...›` placeholders and
    report genuinely-unresolved ones back to the user rather than
    inventing values.
-8. Note to the user: the template's "Mục lục" (table of contents) is a
+9. Note to the user: the template's "Mục lục" (table of contents) is a
    Word TOC field — remind them to update fields (Word: right-click → Update
    Field, or Update Table) after opening the generated file, since
    generated page numbers/section listing won't be live until Word

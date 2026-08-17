@@ -21,10 +21,10 @@
       "toc_heading_and_toc_entry_styles",
       "header_footer_parts_and_page_number_fields",
       "template_declared_special_display_elements_via_manifest",
-      "direct_font_size_override_above_display_size_threshold"
+      "direct_font_size_override_above_the_selected_templates_display_margin"
     ],
-    "display_size_threshold_half_points": 28,
-    "_display_size_threshold_note": "A direct (non-style-inherited) run/paragraph-mark size override above this magnitude is treated as deliberate display/title typography, not an ordinary-text sizing mistake."
+    "display_size_margin_above_ordinary_half_points": 2,
+    "_display_size_margin_note": "Relative, not absolute: a direct (non-style-inherited) run/paragraph-mark size override strictly greater than (this template's resolved ordinary target size + this margin) is treated as deliberate display/title typography (e.g. a bold pseudo-heading), not an ordinary-text sizing mistake. Relative to the template's OWN typography_profile so it scales correctly whether the template's ordinary baseline is 13pt (governance docs, margin -> >14pt is display) or 12pt (BRD, margin -> >13pt is display) — a fixed absolute pt value would silently misclassify a template whose baseline differs from the global default."
   },
 
   "structural_numbering": {

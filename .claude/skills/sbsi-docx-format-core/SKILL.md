@@ -74,8 +74,13 @@ element rather than flattening it to the generic rule.
 
 ## The five headline rules (full detail in FORMAT_CONVENTIONS.md)
 
-1. **Typography** — ordinary text is Times New Roman, exactly 13pt. Cover
-   typography, real headings, TOC entries, and headers/footers are exempt.
+1. **Typography** — ordinary text is Times New Roman, exactly 13pt by
+   default (`format_contract.json`'s global default for governance docs) —
+   a template with its own verified convention (e.g. BRD's 12pt) declares
+   an explicit `typography_profile` override in its own
+   `template_manifest.json`; the same shared engine reads it rather than
+   special-casing that document type in code. Cover typography, real
+   headings, TOC entries, and headers/footers are exempt regardless.
 2. **Numbering** — structural clauses/sub-points use real `w:numPr`, never
    typed "1."/"a)" prefixes. A tolerated exception: manually-numbered
    reference lists inside an appendix.

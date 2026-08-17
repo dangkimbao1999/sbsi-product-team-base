@@ -65,6 +65,39 @@ DEFAULT_HEADING_PATTERNS = _CONTRACT["structural_headings"]["default_patterns"]
 DEFAULT_APPENDIX_PATTERN = _CONTRACT["structural_numbering"]["appendix_exception"]["default_marker_pattern"]
 
 
+def resolved_typography(manifest: dict) -> tuple[str, str, str]:
+    """(font_lower, font_display, size_half_points_str) for ordinary text.
+
+    One shared engine runs against every SBSI document type, but the exact
+    typography value is a per-template fact, not a hardcoded global: most
+    governance templates use the format_contract.json default (TNR 13pt),
+    while a template with its own long-standing, verified convention (e.g.
+    BRD's TNR 12pt, owned by PTSP) declares an explicit override via its own
+    manifest's "typography_profile" — never guessed, never silently forced
+    onto the global default.
+    """
+    profile = manifest.get("typography_profile")
+    if not profile:
+        return TARGET_FONT, TARGET_FONT_DISPLAY, TARGET_SZ
+    font_display = profile["font_name"]
+    return font_display.lower(), font_display, str(profile["size_half_points"])
+
+
+def requires_real_headings(manifest: dict) -> bool:
+    """Whether this template's body must use real Word outline-level headings.
+
+    Default True (the standard SBSI governance-document expectation). A
+    template whose own verified, established design has no real heading
+    styles for its top-level sections (e.g. BRD's 13 numbered sections are
+    large/bold Normal text, a PTSP template decision, not an oversight) sets
+    "requires_real_headings": false in its manifest — this is a structural
+    exception recorded explicitly per template, the same mechanism as
+    cover_page_strategy/appendix_heading_pattern, not a hardcoded carve-out
+    for one document type in the engine itself.
+    """
+    return bool(manifest.get("requires_real_headings", True))
+
+
 def qn(local: str) -> str:
     return f"{{{W}}}{local}"
 
@@ -197,16 +230,23 @@ def in_appendix_zone(idx: int, body_paragraphs, appendix_re) -> bool:
     return False
 
 
-# Half-points. A DIRECT (not style-inherited) run/paragraph-mark font-size
-# override above this is treated as deliberate display/title typography
-# (e.g. a repeated document title on a promulgation page), exempt from the
-# ordinary-text TNR-13pt rule — the same category as a cover-page title,
-# just not always physically on page 1. This is a structural/magnitude
-# signal (nobody accidentally sets ordinary body text to >14pt), not a
-# text match, so it generalizes across templates. A genuine ordinary-text
-# sizing mistake (e.g. 12pt body text) stays well under this threshold and
-# is still caught.
-DISPLAY_SIZE_THRESHOLD_HALF_POINTS = _CONTRACT["ordinary_text_typography"]["display_size_threshold_half_points"]
+# Half-points, added on TOP of the selected template's own resolved ordinary
+# target size (see resolved_typography — NOT a fixed absolute pt value: a
+# template with a different ordinary baseline, e.g. BRD's 12pt vs the 13pt
+# governance default, must have its display-typography margin computed
+# relative to ITS OWN baseline, or a legitimate 14pt bold pseudo-heading on a
+# 12pt-baseline template would be misclassified as an ordinary-text error).
+# A DIRECT (not style-inherited) run/paragraph-mark font-size override more
+# than this margin above the template's own ordinary size is treated as
+# deliberate display/title typography (e.g. a repeated document title on a
+# promulgation page, or a bold non-outline-level section marker), exempt
+# from the ordinary-text typography rule — the same category as a
+# cover-page title, just not always physically on page 1. This is a
+# structural/magnitude signal (nobody accidentally sets ordinary body text
+# 1+pt oversized), not a text match, so it generalizes across templates. A
+# genuine ordinary-text sizing mistake stays well under this margin and is
+# still caught.
+DISPLAY_SIZE_MARGIN_HALF_POINTS = _CONTRACT["ordinary_text_typography"]["display_size_margin_above_ordinary_half_points"]
 
 
 def _direct_sizes(rpr):
@@ -221,23 +261,25 @@ def _direct_sizes(rpr):
     return vals
 
 
-def has_large_display_override(p) -> bool:
+def has_large_display_override(p, target_sz: str) -> bool:
     sizes = []
     ppr_rpr = p.xpath("./w:pPr/w:rPr", namespaces=NS)
     if ppr_rpr:
         sizes += _direct_sizes(ppr_rpr[0])
     for r in p.xpath("./w:r", namespaces=NS):
         sizes += _direct_sizes(r.find(qn("rPr")))
-    return bool(sizes) and any(s > DISPLAY_SIZE_THRESHOLD_HALF_POINTS for s in sizes)
+    threshold = int(target_sz) + DISPLAY_SIZE_MARGIN_HALF_POINTS
+    return bool(sizes) and any(s > threshold for s in sizes)
 
 
-def is_ordinary_text_exempt(p, smap) -> bool:
+def is_ordinary_text_exempt(p, smap, target_sz: str) -> bool:
     """True if p is a heading, a TOC entry, or deliberate large-font display
-    typography — i.e. NOT in scope for the ordinary-text TNR-13pt rule."""
+    typography (relative to the selected template's own ordinary target
+    size) — i.e. NOT in scope for the ordinary-text typography rule."""
     return (
         effective_outline(p, smap) is not None
         or is_toc_style(p)
-        or has_large_display_override(p)
+        or has_large_display_override(p, target_sz)
     )
 
 

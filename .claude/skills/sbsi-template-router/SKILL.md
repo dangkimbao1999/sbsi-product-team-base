@@ -67,16 +67,26 @@ Full detail + examples: `references/TEMPLATE_ROUTING_RULES.md`.
 
 ## Registry
 
-Read `template_registry.json`. Current state:
+Every registered template lives under this skill's own `templates/`
+directory, one subfolder per document type — this is the single shared
+location for ALL SBSI templates, so adding a new document type always has
+an unambiguous place to put its file (see "Adding a new template type"
+below). Read `template_registry.json`. Current state:
 
 - `quy_trinh` → **registered**: `templates/quy-trinh/SBSI_Quy_trinh_Template.docx`
   (manifest: `templates/quy-trinh/template_manifest.json`).
-- `brd` → **registered**: points at `brd-generation`'s own
-  `assets/BRD_Template.docx` (BRD keeps its own content workflow/section
-  rules in the `brd-generation` skill — this registry entry only unifies
-  template *path* resolution; see the registry entry's `notes`).
+- `brd` → **registered**: `templates/brd/BRD_Template.docx` (manifest:
+  `templates/brd/template_manifest.json`). BRD keeps its own content
+  workflow/section rules in the `brd-generation` skill — this registry
+  entry unifies template *path* resolution; see the registry entry's
+  `notes`. Its manifest declares BRD's own verified typography (TNR 12pt)
+  and lack of real Word heading styles — `sbsi-docx-format-core` runs the
+  SAME engine against BRD as every other type, just reading different
+  per-template values from that manifest instead of skipping BRD outright.
 - `quy_dinh`, `quy_che`, `huong_dan`, `chinh_sach`, `to_trinh`, `bien_ban`,
-  `quyet_dinh` → known types, **not registered** (`supported: false`).
+  `quyet_dinh` → known types, **not registered** (`supported: false`), no
+  `templates/<type-slug>/` folder yet (never create one preemptively for a
+  type with no real template — see "Adding a new template type").
   Resolving any of these returns `TEMPLATE_NOT_REGISTERED` — this is
   correct, expected behavior, not a bug to work around.
 
