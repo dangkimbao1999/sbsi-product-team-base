@@ -1,0 +1,23 @@
+{
+  "template_id": "sbsi-brd-v1",
+  "document_type": "brd",
+  "_comment": "Structural/typography exceptions for sbsi-docx-format-core's shared validator/normalizer, verified against this template's real OOXML (word/document.xml, word/styles.xml) on 2026-07-26 and re-confirmed 2026-08-17. BRD is a different document genre (business/product doc owned by PTSP, not an internal governance/legal doc) with its own long-standing typography and section-title convention — recorded explicitly here so the SAME shared engine that formats Quy trình/Quy định/etc. can run against BRD too, instead of BRD being silently skipped or silently forced onto the governance-document defaults.",
+
+  "typography_profile": {
+    "font_name": "Times New Roman",
+    "size_half_points": 24,
+    "_note": "Verified: docDefaults and Normal both resolve to sz/szCs=24 (12pt), not the 13pt governance-document default. This is BRD's own established convention — changing it to 13pt would be a template-owner (PTSP) content decision, not something either skill makes unilaterally. See brd-generation/SKILL.md's 'Relationship to sbsi-template-router' section."
+  },
+
+  "requires_real_headings": false,
+  "_requires_real_headings_note": "Verified: BRD's 13 numbered sections (\"1. Giới thiệu & bối cảnh\", \"2. Phạm vi (Scope)\", ...) are large/bold Normal-style paragraphs, not real Word heading/outline-level styles — a PTSP template design choice, not an oversight. The engine's fake-heading-vocabulary check (Chương/Điều/Mục/Phần) never fires here anyway since BRD doesn't use that vocabulary; this flag only suppresses the separate 'no real heading found in document body' gate, which otherwise assumes every SBSI document has real Word headings.",
+
+  "cover_page_strategy": "none",
+  "_cover_page_strategy_note": "Verified in word/document.xml: BRD has zero w:pageBreakBefore paragraphs (unlike Quy trình's promulgation page) but 16 scattered explicit <w:br w:type=\"page\"/> runs used purely for pagination throughout the document — the generic 'first page-break paragraph wins' heuristic would land on whichever of those 16 happens to come first, an unreliable proxy for 'end of cover'. Set to \"none\" explicitly instead: BRD's cover, document-control tables (Thông tin chung / Lịch sử phiên bản / Phê duyệt), and Mục lục are all expected to be the same TNR 12pt as the rest of the document per its own convention anyway, so checking the whole document is both safer and correct here, not just a fallback.",
+
+  "structural_heading_patterns": [],
+  "appendix_heading_pattern": "^(Phụ\\s*lục|PHỤ\\s*LỤC|Appendix)\\b",
+
+  "toc_field_switches": "\\h \\o \"1-2\"",
+  "_toc_field_switches_note": "Verified directly in word/document.xml: instrText is 'TOC \\h \\o \"1-2\"'. The shared TOC check (real instrText 'TOC' field required whenever a 'Mục lục' heading exists) applies to BRD unchanged, no override needed — matches brd-generation/SKILL.md step 8's reminder to update fields in Word after generation."
+}
