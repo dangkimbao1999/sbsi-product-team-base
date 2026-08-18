@@ -10,13 +10,27 @@
   "_appendix_heading_pattern_note": "Verified: 'Phụ lục số: NN' paragraphs mark each appendix (Danh mục tài liệu tham khảo uses manually-numbered '1. ... 2. ...' legal citations with no numPr — tolerated as a WARNING, not blocking, inside this zone).",
 
   "structural_heading_patterns": [],
-  "_structural_heading_patterns_note": "No additions needed: this template's real hierarchy uses paragraph styles 'Style1' (outline level 0, auto-numbered 'Chương %1' via its own numbering definition) and 'Style2' (outline level 1, auto-numbered 'Điều %1.' via numId 19) — both real Word outline levels, so the engine's generic default Chương/Điều text-pattern check correctly never fires as a false positive here (there is no bold-Normal text mimicking that vocabulary in this template).",
+  "_structural_heading_patterns_note": "No additions needed: every real Chương/Điều paragraph in this template carries a DIRECT per-paragraph <w:outlineLvl> override (0 for Chương, 1 for Điều — see known_style_hierarchy below for why this is NOT simply 'the style's outline level'), so the engine's generic default Chương/Điều text-pattern check correctly never fires as a false positive on real headings here. It DOES correctly fire on a paragraph that uses Style1/Style2 but is MISSING that direct override and has the vocabulary typed as literal text — this is a real, observed failure mode (see 'chuong_structure' below), not a hypothetical.",
 
   "known_style_hierarchy": {
-    "Style1": {"outline_level": 0, "role": "Chương-equivalent top-level section"},
-    "Style2": {"outline_level": 1, "role": "Điều-equivalent sub-section"}
+    "Style1": {"style_level_outline": null, "per_paragraph_direct_outline": 0, "role": "Chương-equivalent top-level section"},
+    "Style2": {"style_level_outline": 9, "per_paragraph_direct_outline": 1, "role": "Điều-equivalent sub-section"},
+    "_note": "IMPORTANT, corrected 2026-08-17 after a real bug was traced to trusting the wrong claim here: outline level 0/1 does NOT come from the style definitions themselves. Style1 has no outlineLvl in its OWN <w:style> block at all; Style2's own style-level outlineLvl is 9, which OOXML/this engine's effective_outline() treats as 'Body Text', i.e. NOT a heading. The real outline 0/1 comes from a DIRECT <w:outlineLvl> override present on every individual Chương/Điều paragraph's own <w:pPr>, layered on top of the style. A paragraph that uses pStyle=Style2 but omits this direct override resolves to outline 9 -> not a heading -> is correctly reported as [Headings] Manual/non-structural heading text if its typed text also matches the Chương/Điều vocabulary pattern. Always copy the outlineLvl from a real sibling paragraph when cloning, never assume the style alone provides it."
   },
-  "_known_style_hierarchy_note": "Informational only (not read by the scripts) — for a human/agent registering a future template to see a worked example of how to record a template's actual style-to-outline-level mapping instead of assuming 'Chương/Điều' literal style names.",
+
+  "chuong_structure": {
+    "pattern": "two_paragraphs",
+    "number_paragraph": {"pStyle": "Style1", "text": "", "numPr": "inherited from Style1's own style definition (numId=5) — do NOT add a paragraph-level numId override, absence of one is what lets the style's active numbering render 'Chương I/II/III...' automatically", "outlineLvl_direct": 0},
+    "title_paragraph": {"pStyle": "Style1", "text": "<chapter title only, e.g. 'QUY ĐỊNH CHUNG'>", "numPr": {"ilvl": 0, "numId": 0}, "_numId_0_note": "numId=0 is the explicit OOXML sentinel for 'no numbering on this paragraph' — required here so the title doesn't ALSO render a 'Chương N' prefix; only the empty number_paragraph immediately before it does.", "outlineLvl_direct": 0},
+    "verified_example": "Body paragraphs 60-61 in the real template: an empty Style1 paragraph (renders 'Chương I' from numId=5's numbering definition) immediately followed by a Style1 paragraph containing only 'QUY ĐỊNH CHUNG' with numId=0.",
+    "real_bug_this_documents": "A reformatted document (QT_Nghien_cuu_va_Phat_trien_SPDV_so, found 2026-08-17) built its new chapter headings as a SINGLE paragraph using pStyle=Style2 (wrong — should be Style1), no direct outlineLvl override, numId=0, and typed 'Chương I' literally as text. This is exactly the failure this manifest section exists to prevent a repeat of — see sbsi-docx-format-core's clone_structural_paragraph() helper, which builds this two-paragraph pattern correctly instead of leaving it to be hand-rolled per generation task."
+  },
+
+  "dieu_numbering": {
+    "numId": 19,
+    "shared_across_whole_document": true,
+    "_note": "Verified: every real Điều paragraph in this template (across all 4 chapters) shares the SAME numId=19 — Điều numbering runs continuously through the whole document (Điều 1, 2, 3... regardless of which Chương it falls under), it does NOT restart at 1 per chapter. When cloning a new Điều paragraph, reuse this numId from any existing Style2 sibling; do not invent a new numbering definition."
+  },
 
   "toc_field_switches": "\\z \\o \"1-3\" \\u \\h",
   "_toc_field_switches_note": "Informational: confirms the TOC field is outline-level-driven (levels 1-3), consistent with Style1/Style2 mapping to outline 0/1.",

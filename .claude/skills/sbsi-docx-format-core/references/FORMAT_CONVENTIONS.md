@@ -74,7 +74,10 @@ paragraph text. Structural clauses/sub-points must carry real `w:numPr` →
 `numbering.xml`.
 
 Use the numbering definitions already defined by the **selected template**
-— don't invent a new scheme when the template already has one.
+— don't invent a new scheme when the template already has one. When adding
+a brand-new numbered clause, use `scripts/_sbsi_docx_common.py`'s
+`clone_structural_paragraph()` against an existing sibling paragraph that
+already carries the right `numPr` — see `IMPLEMENTATION_GUIDE.md` §A.4.
 
 ### Manual-numbering detection (validator)
 
@@ -96,6 +99,17 @@ template's own "Danh mục tài liệu tham chiếu" appendix is a manually
 numbered bibliography of legal citations, which is a legitimate document
 convention, not a structural Khoản/Điểm clause. A template can override the
 appendix marker pattern via its manifest's `appendix_heading_pattern`.
+
+**This tolerance zone is bounded, not open-ended.** It runs from an
+appendix-marker paragraph until the next paragraph matching the
+chapter-boundary pattern (a new Chương/Phần), or end of document — not
+"forever, once triggered anywhere in the document." An earlier version of
+this check was unbounded and, on a real document with a mid-body appendix
+cross-reference (an Điều citing "theo Phụ lục số 01"), silently downgraded
+every real Khoản/Điểm manual-numbering violation in every chapter after
+that point from blocking ERROR to non-blocking WARNING. A template can
+override the chapter-boundary pattern via its manifest's
+`chapter_boundary_pattern` the same way it overrides the appendix marker.
 
 ## 3. Headings must be real structural styles
 
@@ -123,7 +137,16 @@ support the hierarchy the selected template actually uses."
 
 Discover a template's real style IDs/outline mapping from the template
 itself (`styles.xml`) — never hard-code assumptions like "Style1 is always
-the top level" across different templates.
+the top level" across different templates. **A style's own outline level
+is not reliable on its own** — verified example: the Quy trình template's
+`Style2` (used for Điều) has `outlineLvl=9` (not a heading, per OOXML) at
+the style-definition level; the real outline `1` comes from a direct
+per-paragraph `<w:outlineLvl>` override every real Điều paragraph carries.
+Clone an existing real sibling paragraph via
+`clone_structural_paragraph()`/`build_new_chapter_paragraphs()` rather than
+constructing `pStyle` + an assumed `outlineLvl` from scratch — see
+`IMPLEMENTATION_GUIDE.md`'s "Common pitfalls" for the real bug this
+documents.
 
 ## 4. TOC must be a real Word field
 
@@ -132,7 +155,11 @@ TOC field must exist: an `instrText` run containing `TOC` between
 `w:fldChar` begin/separate/end markers — not typed text with dot leaders.
 `word/settings.xml`'s `w:updateFields` should be `true` so Word offers to
 refresh on open; the generated file must always support `Ctrl+A → F9` in
-Word regardless.
+Word regardless. Build this with `scripts/_sbsi_docx_common.py`'s
+`build_toc_field_paragraph()` rather than hand-assembling the
+`fldChar`/`instrText` sequence — pass the switches from the selected
+template's own `toc_field_switches` manifest note when one exists, don't
+invent different switches.
 
 ## 5. Preserve selected-template layout assets
 

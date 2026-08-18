@@ -40,6 +40,9 @@
       "default_marker_pattern": "^(Phụ\\s*lục|PHỤ\\s*LỤC|Appendix)\\b",
       "severity": "WARNING",
       "manifest_override_field": "appendix_heading_pattern",
+      "zone_bounded_by_chapter_boundary_pattern": "^(Chương\\s+[IVXLCDM]+\\b|Phần\\s+[IVXLCDM\\d]+\\b)",
+      "zone_bounded_by_manifest_override_field": "chapter_boundary_pattern",
+      "zone_note": "The appendix-tolerance zone is NOT open-ended once triggered: it runs from an appendix-marker paragraph until the next paragraph matching the chapter-boundary pattern (a new Chương/Phần), or end of document, whichever comes first. Without this bound, a mid-document appendix reference (e.g. an Điều citing 'theo Phụ lục số 01') would silently downgrade every real Khoản/Điểm numbering violation in every following chapter to a non-blocking warning.",
       "rationale": "A manually-numbered reference/bibliography list inside an appendix is a tolerated SBSI drafting convention, not a structural Khoản/Điểm clause."
     },
     "restart_behavior": "Khoản and Điểm numbering restart per the selected template's own numbering.xml abstractNum/num definitions and outline scoping — never re-implemented ad hoc."

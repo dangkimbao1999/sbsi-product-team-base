@@ -99,6 +99,21 @@ headers/footers/relationships/media, then replace/insert content. Do not
 build blank and try to visually imitate the template — visual similarity is
 not the acceptance bar, structural correctness is.
 
+## Generating NEW structural content — use the helpers, don't hand-roll XML
+
+When adding a Chương/Điều/Khoản/Điểm that doesn't already exist in the
+template (not just reformatting existing content), use
+`scripts/_sbsi_docx_common.py`'s `clone_structural_paragraph()`,
+`clone_empty_structural_paragraph()`, `build_new_chapter_paragraphs()`, and
+`build_toc_field_paragraph()` — never construct `numPr`/`outlineLvl` XML by
+hand, and never type "Chương I", "Điều 5.", or a dot-leader TOC line as
+literal text. A style name alone does not tell you its outline level (a
+style's own `outlineLvl` can differ from what every real paragraph using it
+actually shows via a direct per-paragraph override — see
+`IMPLEMENTATION_GUIDE.md`'s "Common pitfalls" for a verified example that
+caused a real bug). Full detail: `references/IMPLEMENTATION_GUIDE.md` §A.4
+and §B.5.
+
 ## Format-only mode
 
 When the user says "chỉ sửa format" / "không sửa nội dung" / "only fix the
