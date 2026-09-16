@@ -33,6 +33,14 @@
         "proxy"
       ],
       "env": {}
+    },
+    "mobile-mcp": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": [
+        "@mobilenext/mobile-mcp@latest"
+      ],
+      "env": {}
     }
   }
 }
