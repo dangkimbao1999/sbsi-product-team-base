@@ -1,0 +1,62 @@
+{
+  "_note": "UNVERIFIED hints ported from the Antigravity sbsi-web-trading-tester skill (Playwright :has-text syntax is not valid in document.querySelector). Use only for read-only javascript_tool queries; confirm every element with find/read_page first.",
+  "version": "1.0.0",
+  "app_url": "https://trading-uat.sbsi.vn",
+  "selectors": {
+    "header": {
+      "user_menu": ".header-menu",
+      "account_badge": "header .header-menu, [class*='KH 088C']",
+      "subaccount_dropdown": "select.account-id-select-control, .btn---600-14-20.account-id-select-control",
+      "quick_order_button": "button:has-text('Lệnh nhanh'), .btn-quick-order"
+    },
+    "quick_order": {
+      "container": "#quick-order-block-to, .quick-order, .block-quick-order",
+      "symbol_input": "input.react-autosuggest__input, #symbol-search-quick-order",
+      "autosuggest_list": ".react-autosuggest__suggestions-list, ul[role='listbox']",
+      "autosuggest_item": ".react-autosuggest__suggestion, li",
+      "tab_buy": "button.buy-tab-item, button:has-text('MUA')",
+      "tab_sell": "button.sell-tab-item, button:has-text('BÁN')",
+      "price_input": "#quick-order-input, input.rc-input-number-price-input",
+      "volume_input": ".rc-input-number-qtty-input, input.rc-input-number-qtty-input",
+      "order_type_tags": {
+        "LO": ".tag-item:has-text('LO'), span:has-text('LO')",
+        "ATO": ".tag-item:has-text('ATO'), span:has-text('ATO')",
+        "ATC": ".tag-item:has-text('ATC'), span:has-text('ATC')",
+        "MTL": ".tag-item:has-text('MTL'), span:has-text('MTL')"
+      },
+      "submit_button": "#btn-place-quick-order",
+      "tabs": {
+        "dat_lenh": "div.item-text:has-text('Đặt lệnh'), .tab-item:has-text('Đặt lệnh')",
+        "so_lenh": "div.item-text:has-text('Sổ lệnh'), .tab-item:has-text('Sổ lệnh')",
+        "danh_muc": "div.item-text:has-text('Danh mục'), .tab-item:has-text('Danh mục')",
+        "tai_san": "div.item-text:has-text('Tài sản'), .tab-item:has-text('Tài sản')"
+      }
+    },
+    "modal_confirm": {
+      "container": ".skylight-dialog, .modal, [role='dialog']",
+      "title": ".skylight-dialog :has-text('Xác nhận đặt lệnh')",
+      "pin_input": "#pin-input",
+      "save_auth_toggle": "#auth-trade-switch",
+      "confirm_button": ".btn-confirm-order, button:has-text('Xác nhận')",
+      "cancel_button": "button:has-text('Đóng'), button:has-text('Hủy')"
+    },
+    "order_book": {
+      "table": "table, .dx-datagrid-table",
+      "rows": "tr.dx-data-row, .order-item",
+      "status_badge": ".order-status, span[class*='status']",
+      "cancel_btn": "button:has-text('Hủy'), .btn-cancel-order",
+      "edit_btn": "button:has-text('Sửa'), .btn-edit-order"
+    },
+    "asset": {
+      "purchasing_power": "span:has-text('Sức mua') + span, [class*='purchasing-power']",
+      "cash_balance": "span:has-text('Tiền mặt') + span",
+      "net_asset_value": "span:has-text('Tài sản ròng') + span, [class*='nav']"
+    },
+    "priceboard": {
+      "tabs_container": ".market-tabs, .tab-header",
+      "hose_dropdown": "button:has-text('HOSE'), .tab-item:has-text('HOSE')",
+      "odd_lot_item": ":has-text('Lô lẻ')",
+      "stock_row": "tr[data-symbol], tr.stock-row"
+    }
+  }
+}
