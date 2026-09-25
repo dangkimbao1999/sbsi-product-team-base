@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { parseCsv, toTestCases } from "./uat-sheet";
+import { formatBrief, parseCsv, toTestCases } from "./uat-sheet";
 
 const header = [
   ",,KỊCH BẢN KIỂM THỬ *,,,,,",
@@ -30,4 +30,11 @@ test("toTestCases maps columns and keeps the real sheet row number", () => {
 test("toTestCases throws when the column layout changed", () => {
   const moved = [header[0], header[1], ",,,,,PIC Nghiệp vụ,Kết quả hiện tại,Ghi chú"].join("\n");
   expect(() => toTestCases(parseCsv(moved))).toThrow(/layout/);
+});
+
+test("formatBrief prints one short tab-separated line per case, single-line purpose", () => {
+  const tc = { sheetRow: 14, id: "TC_WEB_UC01_001", purpose: "Đăng nhập\nthành công", steps: "long", expected: "long", actual: "", status: "Untest", pic: "BaoDK", note: "" };
+  expect(formatBrief([tc, { ...tc, sheetRow: 15, id: "TC_WEB_UC01_002", purpose: "x".repeat(200) }])).toBe(
+    `14\tTC_WEB_UC01_001\tUntest\tĐăng nhập thành công\n15\tTC_WEB_UC01_002\tUntest\t${"x".repeat(119)}…`,
+  );
 });

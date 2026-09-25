@@ -221,12 +221,26 @@ section rows such as "Phân hệ …" / "UC01: …" have no Test ID in column A)
 Rows 4–8 (P / F / PE / chưa thực hiện / tổng) are summary counters.
 Never edit them.
 
-**Read** (no login needed while the sheet is link-readable):
+**Read** (no login needed while the sheet is link-readable). Finding
+cases costs one script call. Don't spend time or tokens on it any other
+way:
 
 ```bash
-bun .claude/skills/sbsi-web-trading-uat/scripts/uat-sheet.ts --pic BaoDK --status Untest   # what's next
-bun .claude/skills/sbsi-web-trading-uat/scripts/uat-sheet.ts --id TC_WEB_UC01_001           # one case + its sheetRow
+S=.claude/skills/sbsi-web-trading-uat/scripts/uat-sheet.ts
+bun $S --pic BaoDK --status Untest --brief --limit 10   # 1) pick: one short line per case
+bun $S --id TC_WEB_UC24_105                             # 2) full detail for the ONE case you'll run now
 ```
+
+- Always list with `--brief` (sheetRow, id, status, purpose). For 28 cases
+  that's ~3 KB instead of ~16 KB of full JSON. Add `--limit` when you only
+  need the next few. The header line still shows the total match count.
+- Pull full detail (steps/expected/actual/note) with `--id` only for the
+  case you're about to execute. Never dump the whole list in full.
+- Other useful filters: `--status Pending` / `--status Fail` (re-test),
+  `--pic` + no status (overview). Use the section order (sheetRow) to batch
+  related cases, e.g. all logged-out cases or one UC, in one browser pass.
+- Never search the sheet through Chrome, `WebFetch`, or by reading the
+  CSV yourself. The script is the only search path.
 
 The script fails loudly if the export isn't reachable, the column layout
 moved, or an `--id` doesn't match exactly one row. On failure, stop and

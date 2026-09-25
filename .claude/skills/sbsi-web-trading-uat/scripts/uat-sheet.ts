@@ -1,6 +1,7 @@
 // Read-only view of the SBSI Web Trading UAT Google Sheet (tab gid 581688525).
-// Usage: bun uat-sheet.ts [--id TC_WEB_UC01_001] [--pic BaoDK] [--status Untest]
-// Prints matching test cases as JSON, each with its real `sheetRow` for writing back.
+// Usage: bun uat-sheet.ts [--id TC_WEB_UC01_001] [--pic BaoDK] [--status Untest] [--brief] [--limit N]
+// Prints matching test cases as JSON (or one short line each with --brief),
+// each with its real `sheetRow` for writing back.
 
 const SHEET_ID = "1h7OFH0E7nySstbyY9ffyMYw350vT1hX_j0yX5hYmoBM";
 const GID = "581688525";
@@ -51,6 +52,16 @@ export function toTestCases(rows: string[][]): TestCase[] {
   );
 }
 
+// One line per case: sheetRow, id, status, purpose (flattened, cut at 120 chars).
+export function formatBrief(cases: TestCase[]): string {
+  return cases
+    .map((t) => {
+      const p = t.purpose.replace(/\s+/g, " ").trim();
+      return [t.sheetRow, t.id, t.status, p.length > 120 ? p.slice(0, 119) + "…" : p].join("\t");
+    })
+    .join("\n");
+}
+
 if (import.meta.main) {
   const args = process.argv.slice(2);
   const opt = (name: string) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
@@ -63,5 +74,12 @@ if (import.meta.main) {
     (t) => (!id || t.id === id) && (!pic || t.pic === pic) && (!status || t.status === status),
   );
   if (id && cases.length !== 1) throw new Error(`Expected exactly 1 row for ${id}, found ${cases.length}`);
-  console.log(JSON.stringify(cases, null, 2));
+  const limit = opt("--limit");
+  const shown = limit ? cases.slice(0, Number(limit)) : cases;
+  if (args.includes("--brief")) {
+    console.log(`# ${cases.length} match(es), showing ${shown.length} — sheetRow\tid\tstatus\tpurpose`);
+    console.log(formatBrief(shown));
+  } else {
+    console.log(JSON.stringify(shown, null, 2));
+  }
 }
