@@ -68,7 +68,7 @@ to revert, leave them and narrow scope going forward.
 ## Key URLs & accounts
 
 - App under test: https://trading-uat.sbsi.vn/priceboard ("Maris Web").
-- MISO Dashboard: https://misotest-01.pages.dev/SBSI_Master_Project_Portal#web
+- MISO Dashboard: https://quan-tri-du-an-core.vercel.app/#web
   — module "Phân Hệ 02 • Web Trading Online (Maris Web)" (400 TCs).
 - Authorized account per PIC — **only these are authorized**:
   - BaoDK → **088C024014** (Claude may type the account number).
