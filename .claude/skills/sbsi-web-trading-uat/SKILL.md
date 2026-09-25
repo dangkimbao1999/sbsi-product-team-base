@@ -1,14 +1,14 @@
 ---
 name: sbsi-web-trading-uat
-description: "Execute SBSI Web Trading (Maris Web / Core FLEX UAT at trading-uat.sbsi.vn) UAT test cases assigned to the current tester's PIC only — look up business rules first, drive the app via Claude in Chrome, verify results against the real order book, write a per-case report with evidence and UI/UX feedback, track results in a local markdown file, and sync clean Pass/Fail results to the MISO Dashboard. Use when asked to run/continue SBSI Web Trading UAT tests, a TC_WEB_* / UCxx_nnn test case, or anything about đặt lệnh, sổ lệnh, bảng giá, lô lẻ, sức mua, phong tỏa on trading-uat.sbsi.vn, or to update the UAT tracker / sync to MISO."
+description: "Execute SBSI Web Trading (Maris Web / Core FLEX UAT at trading-uat.sbsi.vn) UAT test cases assigned to the current tester's PIC only — look up business rules first, drive the app via Claude in Chrome, verify results against the real order book, write a per-case report with evidence and UI/UX feedback, read test cases from and write clean Pass/Fail results back to the team's UAT Google Sheet (KỊCH BẢN KIỂM THỬ – Web Trading Online), and keep a local markdown tracker. Use when asked to run/continue SBSI Web Trading UAT tests, a TC_WEB_* test case, or anything about đặt lệnh, sổ lệnh, bảng giá, lô lẻ, sức mua, phong tỏa on trading-uat.sbsi.vn, or to update the UAT test sheet / tracker."
 ---
 
 # SBSI Web Trading UAT execution
 
 Claude Code version of the team's Web Trading UAT workflow. It merges the
-original claude.ai `sbsi-web-trading-uat` skill (MISO + PIC scope + safety
-rules) with the useful parts of the Antigravity `sbsi-web-trading-tester`
-skill (business-rule lookup, execution checks, evidence, report template,
+original claude.ai `sbsi-web-trading-uat` skill (PIC scope + safety
+rules; its MISO Dashboard sync is replaced by the UAT Google Sheet) with
+the useful parts of the Antigravity `sbsi-web-trading-tester` skill (business-rule lookup, execution checks, evidence, report template,
 UI/UX feedback). Browser driving is done with **Claude in Chrome**
 (`mcp__claude-in-chrome__*` — invoke the `claude-in-chrome` skill first),
 not Python/Playwright/CDP scripts.
@@ -18,13 +18,13 @@ Per-case flow:
 ```
 0 Clarify → 1 Browser session → 2 Account & PIC → 3 Business-rule lookup
 → 4 Execute & capture evidence → 5 Report → 6 UI/UX feedback
-→ 7 Local tracker + MISO sync (+ Jira defect only if asked)
+→ 7 Local tracker + Google Sheet update (+ Jira defect only if asked)
 ```
 
 ## Step 0 — Clarify before acting (anti-hallucination, hard rule)
 
 Never fill a gap with a plausible guess. If any item below is not stated
-in the current chat, in MISO, or in a file you actually read this session,
+in the current chat, in the UAT sheet, or in a file you actually read this session,
 **stop and ask the user** (one `AskUserQuestion` call can batch up to 4
 questions) before continuing:
 
@@ -32,8 +32,9 @@ questions) before continuing:
 |---|---|
 | Tester's PIC | "Bạn test với PIC nào (vd BaoDK)?" — the scope rule below depends on it |
 | Which account / sub-account (`01` thường, `06` ký quỹ…) | Only use an account the user explicitly authorizes for that PIC |
-| Which test case(s) | The exact Test ID(s), or "next ⚪ Chưa test in my filtered MISO list" |
-| Expected result | Take it from MISO / the dataset. If MISO's wording is ambiguous or missing, ask — never invent expected behavior |
+| Which test case(s) | The exact Test ID(s), or "next `Untest` row of my PIC in the sheet" |
+| Expected result | Take it from the sheet's column D. If it's ambiguous or empty, ask — never invent expected behavior |
+| What to write in columns E/H when they already have content | Show the existing text and ask: keep, append, or replace |
 | Test data (symbol, side, price, volume, order type) | If the case doesn't pin it down, propose values and get a yes before placing any order |
 | Business rule (price band, lot size, fee, status name…) | Look it up (Step 3). If no source covers it, ask — say "chưa có nguồn xác nhận", don't state it as fact |
 | Path to the HDSD folder / result file | Ask once per machine; don't assume `C:\Users\AD\...` or any other path from an old skill |
@@ -46,35 +47,40 @@ unless a tool result in this session proved it.
 
 ## Scope — the tester's own test cases ONLY (hard rule, no exceptions)
 
-Only ever execute, mark, or sync test cases whose **NGƯỜI TEST (PIC)**
-column in MISO shows the current tester's PIC (confirmed in Step 0).
+Only ever execute, mark, or sync test cases whose **PIC Nghiệp vụ**
+(column G of the UAT sheet) is the current tester's PIC (confirmed in
+Step 0).
 Known PICs: BaoDK, NgaMTQ, AnhLL, BachNT, LongNH, CuongNT — each owns
 their own cases. Never touch, run, or change the status of another PIC's
 test case, even if it looks trivial or nobody seems to be testing it.
 
 Before acting on any test case:
-1. Check its PIC in MISO (the 👤 name on the row, or filter the "👤 User"
-   dropdown to your PIC first).
+1. Read its row from a fresh CSV export (Step 7b) and check column G.
 2. If PIC ≠ your PIC, skip it entirely — do not open, test, mark, or sync.
-3. When picking "what's next," filter MISO to your PIC first and work only
-   within that list — consecutive Test IDs are frequently owned by
-   different testers, so never walk sequential IDs across the 400-row sheet.
+3. When picking "what's next," filter the exported rows to your PIC first
+   and work only within that list. Consecutive Test IDs are frequently
+   owned by different testers, so never walk sequential IDs across the
+   ~500-TC sheet.
 
 If it's discovered mid-session that already-tested/synced cases weren't
 yours, stop, flag it with the exact Test IDs and their real PIC, and ask
-whether to revert those MISO entries to "Chưa test". If the user says not
-to revert, leave them and narrow scope going forward.
+whether to revert those rows to `Untest`. If the user says not to revert,
+leave them and narrow scope going forward.
 
 ## Key URLs & accounts
 
 - App under test: https://trading-uat.sbsi.vn/priceboard ("Maris Web").
-- MISO Dashboard: https://quan-tri-du-an-core.vercel.app/#web
-  — module "Phân Hệ 02 • Web Trading Online (Maris Web)" (400 TCs).
+- UAT test sheet (source of test cases AND where results go):
+  https://docs.google.com/spreadsheets/d/1h7OFH0E7nySstbyY9ffyMYw350vT1hX_j0yX5hYmoBM/edit?gid=581688525#gid=581688525
+  — tab "KỊCH BẢN KIỂM THỬ", Web Trading Online (Maris Web), `TC_WEB_*`.
+  Layout in Step 7b.
+- The MISO Dashboard is **no longer** the place to record results. Don't
+  write to it.
 - Authorized account per PIC — **only these are authorized**:
   - BaoDK → **088C024014** (Claude may type the account number).
   - Any other PIC → ask the user for their authorized account. Don't reuse
     one from this list for a different PIC.
-- Do **NOT** use 088C096969, or any account number seen in MISO test-case
+- Do **NOT** use 088C096969, or any account number seen in the sheet's test-case
   notes/sample data, or the accounts listed in the old Antigravity
   `uat_accounts.json` (088C115858, 088C000922, 088C030413). Use one only
   if the user explicitly authorizes it in the current chat.
@@ -110,7 +116,8 @@ switch via the UI (native `<select>` → `find` + `form_input`) or ask.
 
 Before judging a result, find the rule it's judged against:
 
-1. MISO's own steps/expected result for the case (primary source).
+1. The sheet row's own steps (column C) and expected result (column D) —
+   primary source.
 2. `references/trading-rules.md` — price bands, price steps, lot sizes,
    order statuses, buying-power formulas. Marked **unverified**: confirm
    against HDSD/current regulation before citing a number as the reason
@@ -197,32 +204,65 @@ user's machine via `mcp__remote-devices__device_commit_files` after every
 case. If the device bridge is unavailable, tell the user their computer
 isn't reachable.)
 
-## Step 7b — MISO Dashboard sync — mechanism & reliability rule
+## Step 7b — UAT Google Sheet: read test cases, write results
 
-Only push a result that is a **clean ✅ Pass or ❌ Fail** whose PIC is
-confirmed to be yours. Never push Partial/Blocked/Note/Skipped results, and
-never another PIC's case.
-1. Open the MISO URL → "Web Trading Online" module.
-2. **Type the exact Test ID into "Tìm theo ID, tên kịch bản..."** (e.g.
-   `UC59_256`), wait, confirm the table shows **exactly one row**, and read
-   that row's PIC before touching its status.
-3. `find` that row's status dropdown `ref`, then `form_input` with `value`
-   `untested` / `pass` / `fail` / `pending`. Direct DOM writes via
-   `javascript_tool` can be blocked by the platform's write-classifier.
-   `javascript_tool` is fine for read-only work like setting the search
-   text. A denied `form_input` usually succeeds on retry.
-4. Re-check the "Passed: N" / "Failed: N" counters — they must move by
-   exactly one, matching what was set. Otherwise stop and re-verify. Never
-   chain writes without checking.
+**Layout** (tab gid `581688525`; header rows 10–11, data from row 12;
+section rows such as "Phân hệ …" / "UC01: …" have no Test ID in column A):
 
-Why: a bare `find` over the unfiltered table once returned another row's
-ref and silently marked the wrong case Pass. Separately, watchlist cases
-(UC04–UC09) owned by LongNH were run and partly synced by mistake.
-Always filter, then verify the PIC, then write.
+| Col | Header | Who writes |
+|---|---|---|
+| A | Mã trường hợp kiểm thử (`TC_WEB_UCxx_nnn`) | never |
+| B / C / D | Mục đích / Các bước thực hiện / Kết quả mong muốn | never — test definition |
+| E | Kết quả thực tế | Claude, observed result only |
+| F | Kết quả hiện tại — `Pass` / `Fail` / `Untest` / `Pending` / `Cancel` | Claude, `Pass`/`Fail` only |
+| G | PIC Nghiệp vụ | never |
+| H | Ghi chú | Claude, short note: date, account/sub-account, evidence/report file |
 
-Never click "Đánh Dấu Tất Cả Pass" or "Reset" on the module toolbar. Both
-are destructive for the whole module. The pencil icon edits the test-case
-**definition**, so never use it to record a result.
+Rows 4–8 (P / F / PE / chưa thực hiện / tổng) are summary counters.
+Never edit them.
+
+**Read** (no login needed while the sheet is link-readable):
+
+```bash
+bun .claude/skills/sbsi-web-trading-uat/scripts/uat-sheet.ts --pic BaoDK --status Untest   # what's next
+bun .claude/skills/sbsi-web-trading-uat/scripts/uat-sheet.ts --id TC_WEB_UC01_001           # one case + its sheetRow
+```
+
+The script fails loudly if the export isn't reachable, the column layout
+moved, or an `--id` doesn't match exactly one row. On failure, stop and
+tell the user. Don't guess row numbers or read the sheet some other way
+without their OK.
+
+**Write** — only a **clean ✅ Pass or ❌ Fail** whose column G is
+confirmed to be your PIC. Never write Partial/Blocked/Skipped results.
+Record those only in the local tracker, and ask the user before setting
+`Pending`/`Cancel`. Never write another PIC's row. One case at a time:
+1. Re-run the script with `--id <TestID>` **right before writing**. Rows
+   shift when someone inserts a line. Take `sheetRow` from this fresh read
+   only, and confirm `pic` is yours. If E or H already has content, show it
+   and ask: keep, append, or replace (Step 0).
+2. In Chrome (the user's Google account must have edit access), open the
+   sheet URL. Go to the cell via the **Name box**: `find` "Name box",
+   click it, type `F<sheetRow>`, then Enter. Check that the Name box shows
+   that address and the row's column A shows the Test ID (screenshot or
+   `get_page_text`) before typing anything.
+3. Type the value, then Enter. Status is exactly `Pass` or `Fail`, matching
+   the sheet's dropdown values. Fill E and H the same way, one cell at a
+   time. Don't paste multi-cell ranges. Don't use `javascript_tool` to
+   write.
+4. Verify: re-run `--id <TestID>` and confirm F/E/H now hold exactly what
+   you typed, and that rows 4–5 moved by exactly one. The export can lag a
+   few seconds; re-read, don't assume. If it doesn't match, stop and
+   re-check before the next case. Never chain writes without verifying.
+
+Why: the old MISO flow once marked the wrong row Pass because the target
+row wasn't pinned down first. Separately, cases owned by LongNH (UC04–UC09)
+were run and partly synced by mistake. Always re-read, then verify the PIC
+and the row, then write.
+
+Never sort, filter-in-place (use a filter *view* if needed), delete, or
+insert rows/columns in the shared sheet. Other testers work in it at the
+same time.
 
 ## Step 7c — Jira defect (optional, ask first)
 
@@ -249,7 +289,7 @@ xuất tất cả tài khoản"), run all of them in one pass, then log back in 
 - Guest mode has been observed both ways: earlier, no price data /
   "Không tìm thấy kết quả". On 2026-09-14 it showed full live data. Always
   re-verify it against the specific test's expectation. Never silently
-  overwrite a recorded MISO result when behavior contradicts it; ask.
+  overwrite a recorded sheet result when behavior contradicts it; ask.
 - Native `<select>`: `find` + `form_input`, never visual click (the OS popup
   isn't in CDP screenshots). Some (e.g. login's "Phiên đăng nhập kết thúc
   sau") aren't in the accessibility tree at all. Don't guess their options
@@ -274,11 +314,12 @@ xuất tất cả tài khoản"), run all of them in one pass, then log back in 
   and run them last if approved.
 - Deliberately triggering lockout (10 wrong logins) or the 5-attempt
   captcha.
-- Flipping a recorded MISO result (Pass↔Fail). Confirm first, citing what
-  changed.
+- Flipping a recorded sheet result (Pass↔Fail), or overwriting existing
+  text in columns E/H. Confirm first, citing what changed.
 - Testing, marking, or syncing another PIC's test case.
 - Creating a Jira issue, committing/pushing, or writing to any shared
-  store other than the local tracker and the MISO status dropdown.
+  store other than the local tracker and columns E/F/H of your own rows
+  in the UAT sheet.
 
 ## Deliberately not ported from the Antigravity skill
 
@@ -287,7 +328,7 @@ xuất tất cả tài khoản"), run all of them in one pass, then log back in 
 - `sbsi_sync_portal.py` 5-tier sync (dataset mirrors, HTML dashboards,
   `extract-legacy.mjs`, Cloudflare KV, auto squash-merge to `main`): it
   lives in another repo and auto-merges, which conflicts with this repo's
-  draft-PR rule. MISO is synced through its UI (Step 7b) instead. Ask the
+  draft-PR rule. Results go to the UAT Google Sheet (Step 7b) instead. Ask the
   user before touching that pipeline.
 - `uat_accounts.json` with plaintext PINs/OTPs: conflicts with the
   credential rule.
